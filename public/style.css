@@ -13,6 +13,45 @@
   --accent-red: #ff5555;
 }
 
+/* ========================= */
+/* Global Button Behavior */
+/* ========================= */
+
+button {
+  transition: 
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.08s ease;
+}
+
+/* Hover */
+.top-bar button:hover,
+.form-actions button:hover,
+.disk-form button:hover {
+  background: #3a3d52;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 8px rgba(189,147,249,0.3);
+}
+
+/* Active (click) */
+.top-bar button:active,
+.form-actions button:active,
+.disk-form button:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Focus */
+.top-bar button:focus,
+.form-actions button:focus,
+.disk-form button:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 2px rgba(189,147,249,0.35);
+}
+
+
 
 /* ========================= */
 /* Base Layout */
@@ -69,6 +108,7 @@ h3 {
 
 .top-bar input[type="text"],
 .form-actions button,
+.disk-form button,
 .top-bar button {
   height: 28px;
   padding: 4px 10px;
@@ -463,12 +503,13 @@ body.edit-mode .edit-only {
 
 .server-section.front {
   flex: 4;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--rack-border);
+
 }
 
 .server-section.inside {
   flex: 2;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--rack-border);
 }
 
 .server-section.back {
