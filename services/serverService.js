@@ -191,9 +191,12 @@ function getDisks(serverId) {
   `).get(serverId);
 
   const disks = db.prepare(`
-    SELECT * FROM disks
-    WHERE server_id = ? AND is_deleted = 0
-  `).all(serverId);
+  SELECT * FROM disks
+  WHERE server_id = ?
+  AND is_deleted = 0
+  ORDER BY placement, position_index
+`).all(serverId);
+
 
   return {
     server,
@@ -206,22 +209,22 @@ function getDisks(serverId) {
 }
 
 function addDisk(serverId, data) {
-  if (data.subtype === 'pci' && data.placement !== 'back') {
-    throw new Error("PCI disks must be placed in back");
-  }
-  if (data.subtype === 'pci' && data.type !== 'nvme') {
-    throw new Error("PCI supports NVMe only");
-  }
+
   db.prepare(`
     INSERT INTO disks
-    (server_id, placement, subtype, type, name, brand, capacity,
+    (server_id, placement, subtype, type,
+     slot_id, pci_group, position_index,
+     name, brand, capacity,
      serial, power_on_time, health, tbw, remaining_time)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     serverId,
     data.placement,
     data.subtype,
     data.type,
+    data.slot_id || null,
+    data.pci_group || 0,
+    data.position_index || 0,
     data.name,
     data.brand,
     data.capacity,
@@ -232,14 +235,35 @@ function addDisk(serverId, data) {
     data.remaining_time
   );
 }
+
+
 function deleteDisk(diskId) {
+
+  const disk = db.prepare(`
+    SELECT server_id, placement
+    FROM disks
+    WHERE id = ?
+  `).get(diskId);
 
   db.prepare(`
     UPDATE disks
     SET is_deleted = 1
     WHERE id = ?
   `).run(diskId);
+
+  if (disk) {
+    const disks = db.prepare(`
+      SELECT id FROM disks
+      WHERE server_id = ?
+      AND placement = ?
+      AND is_deleted = 0
+      ORDER BY position_index
+    `).all(disk.server_id, disk.placement);
+
+    reorderDisks(disk.server_id, disk.placement, disks.map(d => d.id));
+  }
 }
+
 
 function updateDisk(diskId, payload) {
 
@@ -249,21 +273,60 @@ function updateDisk(diskId, payload) {
   `).get(diskId);
 
   if (!disk) throw new Error("Disk not found");
+  
+  const existing = db.prepare(`
+      SELECT id FROM disks
+      WHERE server_id = ?
+      AND slot_id = ?
+      AND id != ?
+      AND is_deleted = 0
+    `).get(disk.server_id, payload.slot_id, diskId);
+
+  if (existing) {
+    throw new Error("Duplicate Slot ID");
+  }
 
   db.prepare(`
     UPDATE disks
     SET
+      slot_id = ?,
+      pci_group = ?,
       brand = ?,
       name = ?,
       serial = ?
     WHERE id = ?
   `).run(
+    payload.slot_id,
+    payload.pci_group,
     payload.brand,
     payload.name,
     payload.serial,
     diskId
   );
 }
+
+
+function reorderDisks(serverId, placement, orderedIds) {
+
+  const update = db.prepare(`
+    UPDATE disks
+    SET position_index = ?
+    WHERE id = ?
+    AND server_id = ?
+    AND placement = ?
+  `);
+
+  const transaction = db.transaction((ids) => {
+    ids.forEach((diskId, index) => {
+      update.run(index + 1, diskId, serverId, placement);
+    });
+  });
+
+  transaction(orderedIds);
+}
+
+
+
 
 
 
@@ -278,5 +341,6 @@ module.exports = {
   getDisks,
   addDisk,
   deleteDisk,
-  updateDisk
+  updateDisk,
+  reorderDisks
 };

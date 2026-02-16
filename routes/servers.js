@@ -101,4 +101,24 @@ router.put("/disks/:id", (req, res) => {
 
 });
 
+router.post('/:id/disks/reorder', (req, res) => {
+
+  const serverId = req.params.id;
+  const { placement, order } = req.body;
+
+  if (!placement || !Array.isArray(order)) {
+    return res.status(400).json({ error: "Invalid reorder payload" });
+  }
+
+  try {
+    serverService.reorderDisks(serverId, placement, order);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 module.exports = router;

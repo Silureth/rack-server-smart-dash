@@ -18,7 +18,7 @@
 /* ========================= */
 
 button {
-  transition: 
+  transition:
     background 0.15s ease,
     border-color 0.15s ease,
     box-shadow 0.15s ease,
@@ -31,7 +31,7 @@ button {
 .disk-form button:hover {
   background: #3a3d52;
   border-color: var(--accent-purple);
-  box-shadow: 0 0 8px rgba(189,147,249,0.3);
+  box-shadow: 0 0 8px rgba(189, 147, 249, 0.3);
 }
 
 /* Active (click) */
@@ -48,7 +48,7 @@ button {
 .disk-form button:focus {
   outline: none;
   border-color: var(--accent-purple);
-  box-shadow: 0 0 0 2px rgba(189,147,249,0.35);
+  box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.35);
 }
 
 
@@ -535,10 +535,18 @@ body.edit-mode .edit-only {
 
 .disk-grid {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   align-content: start;
 }
+
+.disk-slot-id {
+  font-size: 12px;
+  font-weight: 600;  
+  color: var(--accent-cyan);
+  margin-bottom: 4px;  
+}
+
 
 .disk-block {
   background: linear-gradient(180deg,
@@ -547,15 +555,14 @@ body.edit-mode .edit-only {
   border: 1px solid var(--rack-border);
   color: var(--text-main);
 
-
   font-size: 11px;
-  padding: 10px;
+  padding: 8px 10px;
   border-radius: 6px;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 110px;
+  gap: 4px;
+  min-height: 85px;
   cursor: pointer;
   transition:
     transform 0.15s ease,
@@ -580,6 +587,17 @@ body.edit-mode .edit-only {
 .disk-block[data-health="bad"] {
   border-left: 4px solid var(--accent-red);
 }
+.pci-group-label {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-purple);
+    margin: 6px 0 4px 0;
+    padding: 4px 6px;
+    background: rgba(189,147,249,0.08);
+    border: 1px dashed var(--accent-purple);
+    border-radius: 4px;
+}
 
 
 /* Disk content */
@@ -599,15 +617,15 @@ body.edit-mode .edit-only {
 .disk-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  font-size: 11px;
+  gap: 4px;
+  font-size: 10px;
   margin-top: 6px;
 }
 
 .disk-metrics div {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 4px 6px;
+  padding: 3px 6px;
   border-radius: 4px;
 }
 
@@ -800,4 +818,18 @@ body.edit-mode .edit-only {
   margin-top: 20px;
   display: flex;
   gap: 10px;
+}
+
+.pci-group {
+  border: 1px dashed var(--accent-purple);
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(189,147,249,0.08);
+}
+
+.pci-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-purple);
+  margin-bottom: 6px;
 }

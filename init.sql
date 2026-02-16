@@ -25,10 +25,15 @@ CREATE INDEX IF NOT EXISTS idx_servers_rack ON servers(rack_id);
 
 CREATE TABLE disks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  server_id INTEGER NOT NULL,
+  server_id TEXT NOT NULL,
   placement TEXT NOT NULL,
   subtype TEXT,
   type TEXT NOT NULL,
+
+  slot_id TEXT,              -- I:1:3 style
+  pci_group INTEGER DEFAULT 0,
+  position_index INTEGER DEFAULT 0,
+
   name TEXT,
   brand TEXT,
   capacity TEXT,
@@ -37,5 +42,9 @@ CREATE TABLE disks (
   health TEXT,
   tbw TEXT,
   remaining_time TEXT,
+
   is_deleted INTEGER DEFAULT 0
 );
+
+
+CREATE INDEX IF NOT EXISTS idx_disks_server ON disks(server_id);

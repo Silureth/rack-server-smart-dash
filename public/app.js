@@ -362,6 +362,42 @@ document.getElementById("cancelEditBtn")?.addEventListener("click", () => {
 
 });
 
+function enableDiskDrag() {
+    document.querySelectorAll('.disk-grid').forEach(grid => {
+
+        let dragged = null;
+
+        grid.querySelectorAll('.disk-block').forEach(block => {
+
+            block.setAttribute('draggable', true);
+
+            block.addEventListener('dragstart', () => {
+                dragged = block;
+                block.style.opacity = 0.5;
+            });
+
+            block.addEventListener('dragend', () => {
+                block.style.opacity = '';
+            });
+
+            block.addEventListener('dragover', e => {
+                e.preventDefault();
+            });
+
+            block.addEventListener('drop', e => {
+                e.preventDefault();
+                if (dragged && dragged !== block) {
+                    grid.insertBefore(dragged, block);
+                    saveDiskOrder(grid);
+                }
+            });
+
+        });
+
+    });
+}
+
+
 
 function renderServerPanel(data) {
 
@@ -431,6 +467,12 @@ function renderServerPanel(data) {
                 <input name="tbw" placeholder="TBW">
                 <input name="remaining_time" placeholder="Remaining Time">
             </div>
+            <div class="form-row">
+            <input name="slot_id" placeholder="Slot ID (e.g. I:1:3)">
+            <input name="pci_group" type="number" placeholder="PCI Group">
+            </div>
+
+
 
             <button type="submit">Add Disk</button>
 
@@ -503,6 +545,8 @@ function renderServerPanel(data) {
 
     });
 
+    enableDiskDrag();
+
 }
 
 function getHealthColor(health) {
@@ -520,43 +564,93 @@ function renderGrid(disks, columns) {
 
     if (!disks.length) return '<div class="empty">Empty</div>';
 
+    // Sort by saved order
+    disks.sort((a, b) =>
+        (a.position_index || 0) - (b.position_index || 0)
+    );
+
+    // Group PCI vs normal
+    const grouped = {};
+
+    disks.forEach(d => {
+
+        const key = d.subtype === "pci"
+            ? `pci-${d.pci_group || 0}`
+            : "normal";
+
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(d);
+    });
+
     return `
-    <div class="disk-grid" style="grid-template-columns: repeat(${columns}, 1fr);">
-      ${disks.map(d => `
-        <div class="disk-block detailed"
-     style="background:${getHealthColor(d.health)}" data-id="${d.id}">
-    <div class="disk-view">
+    <div class="disk-grid" 
+         style="grid-template-columns: repeat(${columns}, 1fr);">
 
-        <div class="disk-header">
-            ${d.brand || ''} ${d.name || ''}
-        </div>
+        ${Object.entries(grouped).map(([groupKey, groupDisks]) => `
 
-        <div class="disk-serial">
-            SN: ${d.serial || '-'}
-        </div>
+            ${groupKey.startsWith("pci-") ? `
+                <div class="pci-group-label">
+                    PCI Group ${groupKey.split("-")[1]}
+                </div>
+            ` : ""}
 
-        <div class="disk-metrics">
-            <div>Pwr: ${d.power_on_time || '-'}</div>
-            <div>Health: ${d.health || '-'}</div>
-            <div>TBW: ${d.tbw || '-'}</div>
-            <div>Remain: ${d.remaining_time || '-'}</div>
-        </div>
+            ${groupDisks.map(d => `
+                <div class="disk-block detailed"
+                     data-id="${d.id}"
+                     data-health="${getHealthColor(d.health)}"
+                     style="background:${getHealthColor(d.health)}">
+
+                    <div class="disk-view">
+
+                        <div class="disk-slot-id">
+                            ${d.slot_id || '-'}
+                        </div>
+                        
+                        <div class="disk-header">
+                            ${d.brand || ''} ${d.name || ''}
+                        </div>
+
+                        <div class="disk-serial">
+                            SN: ${d.serial || '-'}
+                        </div>
+
+                        <div class="disk-metrics">
+                            <div>Pwr: ${d.power_on_time || '-'}</div>
+                            <div>Health: ${d.health || '-'}</div>
+                            <div>TBW: ${d.tbw || '-'}</div>
+                            <div>Remain: ${d.remaining_time || '-'}</div>
+                        </div>
+
+                    </div>
+
+                    <div class="disk-edit hidden">
+
+                        <input name="slot_id" value="${d.slot_id || ''}" placeholder="Slot ID (I:1:3)">
+                        
+                        <input name="pci_group" 
+                            type="number"
+                            value="${d.pci_group || 0}" 
+                            placeholder="PCI Group">
+
+                        <input name="brand" value="${d.brand || ''}" placeholder="Brand">
+                        <input name="name" value="${d.name || ''}" placeholder="Model">
+                        <input name="serial" value="${d.serial || ''}" placeholder="Serial">
+
+                        <button class="disk-save-btn" data-id="${d.id}">Save</button>
+                    </div>
+
+
+                    <button class="disk-delete-btn" data-id="${d.id}">
+                        ✖
+                    </button>
+
+                </div>
+            `).join("")}
+
+        `).join("")}
 
     </div>
-
-    <div class="disk-edit hidden">
-        <input name="brand" value="${d.brand || ''}">
-        <input name="name" value="${d.name || ''}">
-        <input name="serial" value="${d.serial || ''}">        
-        <button class="disk-save-btn" data-id="${d.id}">Save</button>
-    </div>
-
-    <button class="disk-delete-btn" data-id="${d.id}">✖</button>
-</div>
-
-      `).join('')}
-    </div>
-  `;
+    `;
 }
 
 
@@ -596,10 +690,15 @@ serverPanel.addEventListener("click", function (e) {
         const inputs = diskBlock.querySelectorAll("input");
 
         const payload = {
+            slot_id: diskBlock.querySelector('input[name="slot_id"]').value,
+            pci_group: parseInt(
+                diskBlock.querySelector('input[name="pci_group"]').value
+            ) || 0,
             brand: diskBlock.querySelector('input[name="brand"]').value,
             name: diskBlock.querySelector('input[name="name"]').value,
             serial: diskBlock.querySelector('input[name="serial"]').value
         };
+
         //inputs.forEach(i => payload[i.name] = i.value);
 
         fetch(`/servers/disks/${diskId}`, {
@@ -641,6 +740,29 @@ function closePanel() {
     serverPanel.classList.remove("open");
     backdrop.classList.remove("active");
 }
+
+function saveDiskOrder(grid) {
+
+    const ids = Array.from(grid.querySelectorAll('.disk-block'))
+        .map(b => parseInt(b.dataset.id));
+
+    const section = grid.closest(".server-section");
+    const placement =
+        section.classList.contains("front") ? "front" :
+            section.classList.contains("inside") ? "inside" :
+                "back";
+
+    fetch(`/servers/${currentServerId}/disks/reorder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            placement,
+            order: ids
+        })
+    });
+}
+
+
 
 
 backdrop.addEventListener("click", closePanel);
