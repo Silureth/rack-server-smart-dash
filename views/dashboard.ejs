@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Rack Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <h1>Rack Dashboard</h1>
+    <div class="top-bar">
+        <!-- Global Drag Toggle -->
+        <label>
+            <input type="checkbox" id="editToggle">
+            Enable Edit
+        </label>
+
+        <!-- Add Rack -->
+        <form action="/racks/create" method="POST">
+            <input name="name" placeholder="Rack name" required>
+            <button type="submit">Add Rack</button>
+        </form>
+    </div>
+    <hr>
+    <% const U_HEIGHT=24; %>
+        <% racks.forEach(rack=> { %>
+
+            <h2>
+                <%= rack.name %>
+            </h2>
+
+            <div class="rack-wrapper">
+
+                <!-- ================= FRONT ================= -->
+                <div class="rack-column">
+                    <h3>Front</h3>
+
+                    <div class="rack-with-numbers">
+
+                        <!-- U NUMBERS -->
+                        <div class="u-numbers">
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
+                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px">
+                                    <%= num %>
+                                </div>
+                                <% }) %>
+                        </div>
+
+
+                        <!-- RACK -->
+                        <div class="rack" data-orientation="front">
+                            <% rack.frontGrid.forEach(slot=> { %>
+
+                                <% if (slot && slot.isStart) { %>
+                                    <div class="server draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
+                                        data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
+                                        data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
+                                        data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
+                                        data-position="<%= slot.position_u_start %>"
+                                        style="top: <%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>px;height: <%= slot.height_u * U_HEIGHT %>px;"
+                                        data-original-top="<%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>">
+
+                                        <div class="server-info">
+                                            <div class="server-status"></div>
+                                            <div class="server-text">
+                                                <div class="server-line1">
+                                                    <%= slot.brand %> - <%= slot.name %>
+                                                </div>
+
+                                                <div class="server-line2">
+                                                    <%= slot.type || 'Unknown Type' %>
+                                                </div>
+
+                                                <div class="server-line3">
+                                                    SN: <%= slot.sn || '-' %>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="resize-handle"></div>
+                                        <div class="server-actions">
+                                            <button class="server-edit-btn">✏</button>
+                                            <button class="server-config-btn">⚙</button>
+                                            <form action="/servers/delete" method="POST" class="delete-form">
+                                                <input type="hidden" name="id" value="<%= slot.id %>">
+                                                <button type="submit">✖</button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+
+                                    <% } %>
+
+                                        <% }) %>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- ================= BACK ================= -->
+                <div class="rack-column">
+                    <h3>Back</h3>
+
+                    <div class="rack-with-numbers">
+
+                        <!-- U NUMBERS -->
+                        <div class="u-numbers">
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
+                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px">
+                                    <%= num %>
+                                </div>
+                                <% }) %>
+                        </div>
+
+
+                        <!-- RACK -->
+                        <div class="rack" data-orientation="back">
+                            <% rack.backGrid.forEach(slot=> { %>
+
+                                <% if (slot && slot.isStart) { %>
+                                    <div class="server draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
+                                        data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
+                                        data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
+                                        data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
+                                        data-position="<%= slot.position_u_start %>"
+                                        style="top: <%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>px;height: <%= slot.height_u * U_HEIGHT %>px;"
+                                        data-original-top="<%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>">
+
+                                        <div class="server-info">
+                                            <div class="server-status"></div>
+                                            <div class="server-text">
+                                                <div class="server-line1">
+                                                    <%= slot.brand %> - <%= slot.name %>
+                                                </div>
+
+                                                <div class="server-line2">
+                                                    <%= slot.type || 'Unknown Type' %>
+                                                </div>
+
+                                                <div class="server-line3">
+                                                    SN: <%= slot.sn || '-' %>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="resize-handle"></div>
+                                        <div class="server-actions">
+                                            <button class="server-edit-btn">✏</button>
+                                            <button class="server-config-btn">⚙</button>
+                                            <form action="/servers/delete" method="POST" class="delete-form">
+                                                <input type="hidden" name="id" value="<%= slot.id %>">
+                                                <button type="submit">✖</button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+
+                                    <% } %>
+
+                                        <% }) %>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="edit-only">
+                <form id="serverForm" action="/servers/create" method="POST" class="server-form">
+
+                    <input type="hidden" name="id" id="serverId">
+                    <input type="hidden" name="rack_id" value="<%= rack.id %>">
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label>Server Name</label>
+                            <input id="serverName" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Brand</label>
+                            <input id="serverBrand" name="brand">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Serial Number</label>
+                            <input id="serverSn" name="sn">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Type</label>
+                            <input id="serverType" name="type">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Orientation</label>
+                            <select id="serverOrientation" name="orientation">
+                                <option value="front">Front</option>
+                                <option value="back">Back</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>U Height</label>
+                            <input id="serverHeight" name="height_u" type="number" min="1" max="2">
+                        </div>
+
+                        <div class="form-group">
+                            <label>U Position</label>
+                            <input id="serverPosition" name="position_u_start" type="number" min="1"
+                                max="<%= rack.height_u %>">
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="serverSubmitBtn" type="submit">Add Server</button>
+                        <button type="button" id="cancelEditBtn">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+
+            <hr>
+
+            <% }) %>
+                <div id="serverPanel" class="server-panel"></div>
+                <div id="panelBackdrop" class="panel-backdrop"></div>
+                <script src="/app.js"></script>
+
+</body>
+
+</html>

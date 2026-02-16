@@ -1,0 +1,282 @@
+const db = require('../db');
+const { v4: uuidv4 } = require('uuid');
+
+function getByRack(rackId) {
+  return db.prepare(`
+    SELECT * FROM servers
+    WHERE rack_id = ?
+    AND is_deleted = 0
+  `).all(rackId);
+}
+
+function create(data) {
+  const {
+    rack_id,
+    name,
+    brand,
+    sn,
+    type,
+    orientation,
+    height_u,
+    position_u_start
+  } = data;
+
+  const existing = getByRack(rack_id);
+
+  for (const s of existing) {
+    const existingEnd = s.position_u_start + s.height_u - 1;
+    const newEnd = position_u_start + height_u - 1;
+
+    const collision =
+      position_u_start <= existingEnd &&
+      newEnd >= s.position_u_start &&
+      s.orientation === orientation;
+
+    if (collision) {
+      throw new Error("U space collision detected");
+    }
+  }
+
+  db.prepare(`
+    INSERT INTO servers (
+      id, rack_id, name, brand, sn, type,
+      orientation, height_u, position_u_start
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    uuidv4(),
+    rack_id,
+    name,
+    brand,
+    sn,
+    type,
+    orientation,
+    height_u,
+    position_u_start
+  );
+}
+
+function updateServer(data) {
+
+  db.prepare(`
+    UPDATE servers
+    SET
+      name = ?,
+      brand = ?,
+      sn = ?,
+      type = ?,
+      orientation = ?,
+      height_u = ?,
+      position_u_start = ?
+    WHERE id = ?
+  `).run(
+    data.name,
+    data.brand,
+    data.sn,
+    data.type,
+    data.orientation,
+    parseInt(data.height_u),
+    parseInt(data.position_u_start),
+    data.id
+  );
+}
+
+
+function move(id, newPosition, newOrientation) {
+
+  const server = db.prepare(`
+    SELECT * FROM servers
+    WHERE id = ? AND is_deleted = 0
+  `).get(id);
+
+  if (!server) throw new Error("Server not found");
+
+  const rack = db.prepare(`
+    SELECT * FROM racks WHERE id = ?
+  `).get(server.rack_id);
+
+  if (!rack) throw new Error("Rack not found");
+
+  if (newPosition < 1)
+    throw new Error("Invalid position");
+
+  if (newPosition + server.height_u - 1 > rack.height_u)
+    throw new Error("Exceeds rack height");
+
+  const others = db.prepare(`
+    SELECT * FROM servers
+    WHERE rack_id = ?
+    AND orientation = ?
+    AND id != ?
+    AND is_deleted = 0
+  `).all(server.rack_id, newOrientation, id);
+
+  for (const s of others) {
+    const end = s.position_u_start + s.height_u - 1;
+    const newEnd = newPosition + server.height_u - 1;
+
+    if (
+      newPosition <= end &&
+      newEnd >= s.position_u_start
+    ) {
+      throw new Error("Collision detected");
+    }
+  }
+
+  db.prepare(`
+    UPDATE servers
+    SET position_u_start = ?, orientation = ?
+    WHERE id = ?
+  `).run(newPosition, newOrientation, id);
+}
+
+function softDelete(id) {
+  db.prepare(`
+    UPDATE servers
+    SET is_deleted = 1
+    WHERE id = ?
+  `).run(id);
+}
+function resize(id, newHeight) {
+
+  if (![1, 2].includes(newHeight))
+    throw new Error("Invalid height");
+
+  const server = db.prepare(`
+    SELECT * FROM servers
+    WHERE id = ? AND is_deleted = 0
+  `).get(id);
+
+  if (!server) throw new Error("Server not found");
+
+  const rack = db.prepare(`
+    SELECT * FROM racks WHERE id = ?
+  `).get(server.rack_id);
+
+  const newEnd =
+    server.position_u_start + newHeight - 1;
+
+  if (newEnd > rack.height_u)
+    throw new Error("Exceeds rack height");
+
+  const others = db.prepare(`
+    SELECT * FROM servers
+    WHERE rack_id = ?
+    AND orientation = ?
+    AND id != ?
+    AND is_deleted = 0
+  `).all(server.rack_id, server.orientation, id);
+
+  for (const s of others) {
+    const end = s.position_u_start + s.height_u - 1;
+
+    if (
+      server.position_u_start <= end &&
+      newEnd >= s.position_u_start
+    ) {
+      throw new Error("Collision detected");
+    }
+  }
+
+  db.prepare(`
+    UPDATE servers
+    SET height_u = ?
+    WHERE id = ?
+  `).run(newHeight, id);
+}
+
+function getDisks(serverId) {
+
+  const server = db.prepare(`
+    SELECT * FROM servers WHERE id = ?
+  `).get(serverId);
+
+  const disks = db.prepare(`
+    SELECT * FROM disks
+    WHERE server_id = ? AND is_deleted = 0
+  `).all(serverId);
+
+  return {
+    server,
+    disks: {
+      front: disks.filter(d => d.placement === 'front'),
+      inside: disks.filter(d => d.placement === 'inside'),
+      back: disks.filter(d => d.placement === 'back')
+    }
+  };
+}
+
+function addDisk(serverId, data) {
+  if (data.subtype === 'pci' && data.placement !== 'back') {
+    throw new Error("PCI disks must be placed in back");
+  }
+  if (data.subtype === 'pci' && data.type !== 'nvme') {
+    throw new Error("PCI supports NVMe only");
+  }
+  db.prepare(`
+    INSERT INTO disks
+    (server_id, placement, subtype, type, name, brand, capacity,
+     serial, power_on_time, health, tbw, remaining_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    serverId,
+    data.placement,
+    data.subtype,
+    data.type,
+    data.name,
+    data.brand,
+    data.capacity,
+    data.serial,
+    data.power_on_time,
+    data.health,
+    data.tbw,
+    data.remaining_time
+  );
+}
+function deleteDisk(diskId) {
+
+  db.prepare(`
+    UPDATE disks
+    SET is_deleted = 1
+    WHERE id = ?
+  `).run(diskId);
+}
+
+function updateDisk(diskId, payload) {
+
+  const disk = db.prepare(`
+    SELECT * FROM disks
+    WHERE id = ? AND is_deleted = 0
+  `).get(diskId);
+
+  if (!disk) throw new Error("Disk not found");
+
+  db.prepare(`
+    UPDATE disks
+    SET
+      brand = ?,
+      name = ?,
+      serial = ?
+    WHERE id = ?
+  `).run(
+    payload.brand,
+    payload.name,
+    payload.serial,
+    diskId
+  );
+}
+
+
+
+
+module.exports = {
+  getByRack,
+  create,
+  updateServer,
+  move,
+  softDelete,
+  resize,
+  getDisks,
+  addDisk,
+  deleteDisk,
+  updateDisk
+};
