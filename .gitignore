@@ -1,1 +1,3 @@
 node_modules
+.initialized
+app.db
