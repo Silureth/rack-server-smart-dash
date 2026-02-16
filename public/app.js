@@ -396,7 +396,7 @@ function renderServerPanel(data) {
 
         <h4>Add Disk</h4>
 
-        <form id="addDiskForm">
+        <form id="addDiskForm" class="disk-form">
 
             <div class="form-row">
                 <select name="placement">
