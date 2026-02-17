@@ -408,30 +408,11 @@ function renderServerPanel(data) {
         <h3>${data.server.name}</h3>
             <button id="closePanelBtn">✖</button>
         </div>
-
-        <div class="server-visual-horizontal">
-
-            <div class="server-section front">
-                <div class="section-title">Front</div>
-                ${renderGrid(data.disks.front, 2)}
-            </div>
-
-            <div class="server-section inside">
-                <div class="section-title">Inside</div>
-                ${renderGrid(data.disks.inside, 4)}
-            </div>
-
-            <div class="server-section back">
-                <div class="section-title">Back</div>
-                ${renderGrid(data.disks.back, 4)}
-            </div>
-
+<div class="accordion">
+        <div class="accordion-header" id="toggleAddDisk">
+            ➕ Add Disk
         </div>
-
-        <hr>
-
-        <h4>Add Disk</h4>
-
+        <div class="accordion-body collapsed">
         <form id="addDiskForm" class="disk-form">
 
             <div class="form-row">
@@ -477,7 +458,62 @@ function renderServerPanel(data) {
             <button type="submit">Add Disk</button>
 
         </form>
+        </div>
+        <div class="server-visual-horizontal">
+
+            <div class="server-section front">
+                <div class="section-title">
+                    Front
+                    <span class="section-badge">${data.disks.front.length}</span>
+                    <span class="collapse-icon">▾</span>
+                </div>
+                <div class="section-content">
+                    ${renderGrid(data.disks.front, 2, "front")}
+                </div>
+            </div>
+
+            <div class="server-section inside">
+                <div class="section-title collapsible">
+                    Inside
+                    <span class="section-badge">${data.disks.inside.length}</span>
+                    <span class="collapse-icon">▾</span>
+                </div>
+                <div class="section-content collapsed">
+                    ${renderGrid(data.disks.inside, 4, "inside")}
+                </div>
+            </div>
+
+            <div class="server-section back">
+                <div class="section-title">
+                    Back
+                    <span class="section-badge">${data.disks.back.length}</span>
+                    <span class="collapse-icon">▾</span>
+                </div>
+                <div class="section-content">
+                    ${renderGrid(data.disks.back, 2, "back")}
+                </div>
+            </div>
+
+
+        </div>
+
+        
+        
     `;
+    const toggle = serverPanel.querySelector("#toggleAddDisk");
+    const body = serverPanel.querySelector(".accordion-body");
+
+    toggle.addEventListener("click", () => {
+        body.classList.toggle("collapsed");
+    });
+
+    serverPanel.querySelectorAll(".collapsible").forEach(header => {
+        header.addEventListener("click", function () {
+            const content = this.parentElement.querySelector(".section-content");
+            content.classList.toggle("collapsed");
+            this.classList.toggle("collapsed");
+        });
+    });
 
     /* ================= Placement Logic ================= */
 
@@ -560,98 +596,91 @@ function getHealthColor(health) {
 }
 
 
-function renderGrid(disks, columns) {
+function renderGrid(disks, columns, placement) {
 
     if (!disks.length) return '<div class="empty">Empty</div>';
 
-    // Sort by saved order
-    disks.sort((a, b) =>
-        (a.position_index || 0) - (b.position_index || 0)
-    );
+    if (placement === "back") {
+        return renderBackLayout(disks);
+    }
 
-    // Group PCI vs normal
-    const grouped = {};
+    return `
+        <div class="disk-grid ${columns === 2 ? 'grid-2' : 'grid-4'}">
+            ${disks.map(d => renderDisk(d)).join('')}
+        </div>
+    `;
+}
+
+function renderBackLayout(disks) {
+
+    const groups = {};
 
     disks.forEach(d => {
-
-        const key = d.subtype === "pci"
-            ? `pci-${d.pci_group || 0}`
-            : "normal";
-
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(d);
+        const group = d.pci_group || 0;
+        if (!groups[group]) groups[group] = [];
+        groups[group].push(d);
     });
 
     return `
-    <div class="disk-grid" 
-         style="grid-template-columns: repeat(${columns}, 1fr);">
-
-        ${Object.entries(grouped).map(([groupKey, groupDisks]) => `
-
-            ${groupKey.startsWith("pci-") ? `
-                <div class="pci-group-label">
-                    PCI Group ${groupKey.split("-")[1]}
-                </div>
-            ` : ""}
-
-            ${groupDisks.map(d => `
-                <div class="disk-block detailed"
-                     data-id="${d.id}"
-                     data-health="${getHealthColor(d.health)}"
-                     style="background:${getHealthColor(d.health)}">
-
-                    <div class="disk-view">
-
-                        <div class="disk-slot-id">
-                            ${d.slot_id || '-'}
-                        </div>
-                        
-                        <div class="disk-header">
-                            ${d.brand || ''} ${d.name || ''}
-                        </div>
-
-                        <div class="disk-serial">
-                            SN: ${d.serial || '-'}
-                        </div>
-
-                        <div class="disk-metrics">
-                            <div>Pwr: ${d.power_on_time || '-'}</div>
-                            <div>Health: ${d.health || '-'}</div>
-                            <div>TBW: ${d.tbw || '-'}</div>
-                            <div>Remain: ${d.remaining_time || '-'}</div>
-                        </div>
-
+        <div class="pci-container">
+            ${Object.keys(groups).map(groupId => `
+                <div class="pci-group">
+                    <div class="pci-group-title">
+                        PCI Group ${groupId}
                     </div>
 
-                    <div class="disk-edit hidden">
-
-                        <input name="slot_id" value="${d.slot_id || ''}" placeholder="Slot ID (I:1:3)">
-                        
-                        <input name="pci_group" 
-                            type="number"
-                            value="${d.pci_group || 0}" 
-                            placeholder="PCI Group">
-
-                        <input name="brand" value="${d.brand || ''}" placeholder="Brand">
-                        <input name="name" value="${d.name || ''}" placeholder="Model">
-                        <input name="serial" value="${d.serial || ''}" placeholder="Serial">
-
-                        <button class="disk-save-btn" data-id="${d.id}">Save</button>
+                    <div class="pci-row">
+                        ${groups[groupId].map(d => renderDisk(d)).join('')}
                     </div>
-
-
-                    <button class="disk-delete-btn" data-id="${d.id}">
-                        ✖
-                    </button>
-
                 </div>
-            `).join("")}
-
-        `).join("")}
-
-    </div>
+            `).join('')}
+        </div>
     `;
 }
+
+function renderDisk(d) {
+    return `
+        <div class="disk-block detailed"
+            style="background:${getHealthColor(d.health)}"
+            data-id="${d.id}">
+
+            <div class="disk-view">
+                <div class="disk-slot-id">
+                    ${d.slot_id || '-'}
+                </div>
+
+                <div class="disk-header">
+                    ${d.brand || ''} ${d.name || ''}
+                </div>
+
+                <div class="disk-serial">
+                    SN: ${d.serial || '-'}
+                </div>
+
+                <div class="disk-metrics">
+                    <div>Pwr: ${d.power_on_time || '-'}</div>
+                    <div>Health: ${d.health || '-'}</div>
+                    <div>TBW: ${d.tbw || '-'}</div>
+                    <div>Remain: ${d.remaining_time || '-'}</div>
+                </div>
+            </div>
+
+            <div class="disk-edit hidden">
+                <input name="slot_id" value="${d.slot_id || ''}">
+                <input name="pci_group" value="${d.pci_group || 0}">
+                <input name="brand" value="${d.brand || ''}">
+                <input name="name" value="${d.name || ''}">
+                <input name="serial" value="${d.serial || ''}">
+                <button class="disk-save-btn" data-id="${d.id}">
+                    Save
+                </button>
+            </div>
+
+            <button class="disk-delete-btn" data-id="${d.id}">✖</button>
+        </div>
+    `;
+}
+
 
 
 serverPanel.addEventListener("click", function (e) {
