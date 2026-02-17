@@ -507,13 +507,19 @@ function renderServerPanel(data) {
         body.classList.toggle("collapsed");
     });
 
-    serverPanel.querySelectorAll(".collapsible").forEach(header => {
-        header.addEventListener("click", function () {
-            const content = this.parentElement.querySelector(".section-content");
-            content.classList.toggle("collapsed");
-            this.classList.toggle("collapsed");
+    serverPanel.querySelectorAll(".server-section").forEach(section => {
+
+        const header = section.querySelector(".section-title");
+        if (!header) return;
+
+        header.addEventListener("click", () => {
+            section.classList.toggle("section-collapsed");
         });
+
     });
+    serverPanel.querySelector(".server-section.inside")
+        ?.classList.add("section-collapsed");
+
 
     /* ================= Placement Logic ================= */
 
@@ -616,24 +622,45 @@ function renderBackLayout(disks) {
     const groups = {};
 
     disks.forEach(d => {
-        const group = d.pci_group || 0;
-        if (!groups[group]) groups[group] = [];
-        groups[group].push(d);
+
+        if (d.subtype === 'pci' && d.pci_group !== null && d.pci_group !== undefined) {
+            const group = d.pci_group;
+
+            if (!groups[group]) groups[group] = [];
+            groups[group].push(d);
+        } else {
+            if (!groups["_ungrouped"]) groups["_ungrouped"] = [];
+            groups["_ungrouped"].push(d);
+        }
+
     });
+
 
     return `
         <div class="pci-container">
-            ${Object.keys(groups).map(groupId => `
-                <div class="pci-group">
-                    <div class="pci-group-title">
-                        PCI Group ${groupId}
-                    </div>
+            ${Object.keys(groups).map(groupId => {
 
-                    <div class="pci-row">
-                        ${groups[groupId].map(d => renderDisk(d)).join('')}
-                    </div>
-                </div>
-            `).join('')}
+        if (groupId === "_ungrouped") {
+            return `
+            <div class="pci-row">
+                ${groups[groupId].map(d => renderDisk(d)).join('')}
+            </div>
+        `;
+        }
+
+        return `
+        <div class="pci-group">
+            <div class="pci-group-title">
+                PCI Group ${groupId}
+            </div>
+            <div class="pci-row">
+                ${groups[groupId].map(d => renderDisk(d)).join('')}
+            </div>
+        </div>
+    `;
+
+    }).join('')}
+
         </div>
     `;
 }
@@ -717,12 +744,11 @@ serverPanel.addEventListener("click", function (e) {
         const diskBlock = e.target.closest(".disk-block");
 
         const inputs = diskBlock.querySelectorAll("input");
+        const rawGroup = diskBlock.querySelector('input[name="pci_group"]').value;
 
         const payload = {
             slot_id: diskBlock.querySelector('input[name="slot_id"]').value,
-            pci_group: parseInt(
-                diskBlock.querySelector('input[name="pci_group"]').value
-            ) || 0,
+            pci_group: rawGroup !== "" ? parseInt(rawGroup) : null,
             brand: diskBlock.querySelector('input[name="brand"]').value,
             name: diskBlock.querySelector('input[name="name"]').value,
             serial: diskBlock.querySelector('input[name="serial"]').value

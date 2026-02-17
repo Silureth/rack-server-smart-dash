@@ -950,9 +950,6 @@ body.edit-mode .edit-only {
 }
 
 .section-content.collapsed {
-  max-height: 0;
-  max-width: 0;
-  opacity: 0;
   display: none;
 }
 
@@ -966,4 +963,29 @@ body.edit-mode .edit-only {
 
 .section-title:not(.collapsed) .collapse-icon {
   transform: rotate(180deg);
+}
+
+/* ========================= */
+/* Collapsible Sections */
+/* ========================= */
+
+.server-section {
+  transition: flex 0.3s ease, width 0.3s ease;
+}
+
+.server-section.section-collapsed {
+  flex: 0 0 50px; /* keep small vertical bar */
+  min-width: 50px;
+  padding: 6px;
+  align-items: center;
+}
+
+.server-section.section-collapsed .section-content {
+  display: none;
+}
+
+.server-section.section-collapsed .section-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin: 0;
 }

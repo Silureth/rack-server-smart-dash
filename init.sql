@@ -31,7 +31,7 @@ CREATE TABLE disks (
   type TEXT NOT NULL,
 
   slot_id TEXT,              -- I:1:3 style
-  pci_group INTEGER DEFAULT 0,
+  pci_group INTEGER,
   position_index INTEGER DEFAULT 0,
 
   name TEXT,

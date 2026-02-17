@@ -223,7 +223,7 @@ function addDisk(serverId, data) {
     data.subtype,
     data.type,
     data.slot_id || null,
-    data.pci_group || 0,
+    data.pci_group ? parseInt(data.pci_group) : null,
     data.position_index || 0,
     data.name,
     data.brand,
@@ -273,36 +273,47 @@ function updateDisk(diskId, payload) {
   `).get(diskId);
 
   if (!disk) throw new Error("Disk not found");
-  
-  const existing = db.prepare(`
-      SELECT id FROM disks
-      WHERE server_id = ?
-      AND slot_id = ?
-      AND id != ?
-      AND is_deleted = 0
-    `).get(disk.server_id, payload.slot_id, diskId);
 
-  if (existing) {
-    throw new Error("Duplicate Slot ID");
+  // Normalize slot_id
+  const slotId =
+    payload.slot_id && payload.slot_id.trim() !== ""
+      ? payload.slot_id.trim()
+      : null;
+
+  // Only check duplicates if slotId exists
+  if (slotId) {
+    const existing = db.prepare(`
+    SELECT id FROM disks
+    WHERE server_id = ?
+    AND slot_id = ?
+    AND id != ?
+    AND is_deleted = 0
+  `).get(disk.server_id, slotId, diskId);
+
+    if (existing) {
+      throw new Error("Duplicate Slot ID");
+    }
   }
 
+
   db.prepare(`
-    UPDATE disks
-    SET
-      slot_id = ?,
-      pci_group = ?,
-      brand = ?,
-      name = ?,
-      serial = ?
-    WHERE id = ?
-  `).run(
-    payload.slot_id,
-    payload.pci_group,
+  UPDATE disks
+  SET
+    slot_id = ?,
+    pci_group = ?,
+    brand = ?,
+    name = ?,
+    serial = ?
+  WHERE id = ?
+`).run(
+    slotId,
+    payload.pci_group !== "" ? parseInt(payload.pci_group) : null,
     payload.brand,
     payload.name,
     payload.serial,
     diskId
   );
+
 }
 
 
