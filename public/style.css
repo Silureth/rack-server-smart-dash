@@ -668,6 +668,43 @@ body.edit-mode .edit-only {
   font-weight: 600;
   font-size: 13px;
   color: var(--accent-purple);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.disk-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent-purple);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disk-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.disk-type {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(139, 233, 253, 0.15);
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.disk-capacity {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .disk-serial {
@@ -974,7 +1011,8 @@ body.edit-mode .edit-only {
 }
 
 .server-section.section-collapsed {
-  flex: 0 0 50px; /* keep small vertical bar */
+  flex: 0 0 50px;
+  /* keep small vertical bar */
   min-width: 50px;
   padding: 6px;
   align-items: center;

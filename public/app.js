@@ -677,8 +677,18 @@ function renderDisk(d) {
                 </div>
 
                 <div class="disk-header">
-                    ${d.brand || ''} ${d.name || ''}
+                    <div class="disk-title">
+                        ${d.brand || ''} ${d.name || ''}
+                    </div>
+
+                    <div class="disk-meta">
+                        <span class="disk-type">
+                            ${(d.type || '').toUpperCase()}
+                        </span>
+                        ${d.capacity ? `<span class="disk-capacity">[${d.capacity}]</span>` : ''}
+                    </div>
                 </div>
+
 
                 <div class="disk-serial">
                     SN: ${d.serial || '-'}
