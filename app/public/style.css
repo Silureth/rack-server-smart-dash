@@ -28,7 +28,10 @@ button {
 /* Hover */
 .top-bar button:hover,
 .form-actions button:hover,
-.disk-form button:hover {
+.disk-form button:hover,
+.port-form button:hover,
+.power-input-form button:hover,
+.power-output-form button:hover {
   background: #3a3d52;
   border-color: var(--accent-purple);
   box-shadow: 0 0 8px rgba(189, 147, 249, 0.3);
@@ -37,7 +40,10 @@ button {
 /* Active (click) */
 .top-bar button:active,
 .form-actions button:active,
-.disk-form button:active {
+.disk-form button:active,
+.port-form button:active,
+.power-input-form button:active,
+.power-output-form button:active {
   transform: translateY(1px);
   box-shadow: none;
 }
@@ -45,7 +51,10 @@ button {
 /* Focus */
 .top-bar button:focus,
 .form-actions button:focus,
-.disk-form button:focus {
+.disk-form button:focus,
+.port-form button:focus,
+.power-input-form button:focus,
+.power-output-form button:focus {
   outline: none;
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.35);
@@ -109,6 +118,9 @@ h3 {
 .top-bar input[type="text"],
 .form-actions button,
 .disk-form button,
+.port-form button,
+.power-input-form button,
+.power-output-form button,
 .top-bar button {
   height: 28px;
   padding: 4px 10px;
@@ -897,7 +909,13 @@ body.edit-mode .edit-only {
 .disk-form input,
 .disk-form select,
 .server-form input,
-.server-form select {
+.server-form select,
+.port-form input,
+.port-form select,
+.power-input-form input,
+.power-input-form select,
+.power-output-form input,
+.power-output-form select {
   padding: 6px;
   font-size: 13px;
   background: #2b2e3a;
@@ -908,7 +926,13 @@ body.edit-mode .edit-only {
 .disk-form input:focus,
 .disk-form select:focus,
 .server-form input:focus,
-.server-form select:focus {
+.server-form select:focus,
+.port-form input:focus,
+.port-form select:focus,
+.power-input-form input:focus,
+.power-input-form select:focus,
+.power-output-form input:focus,
+.power-output-form select:focus {
   outline: none;
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.3);
@@ -1030,15 +1054,15 @@ body.edit-mode .edit-only {
 }
 
 .rack-item-server {
-  background: linear-gradient(180deg,#6272a4 0%,#44475a 100%);
+  background: linear-gradient(180deg, #6272a4 0%, #44475a 100%);
 }
 
 .rack-item-switch {
-  background: linear-gradient(180deg,#3f8cff 0%,#2b5dab 100%);
+  background: linear-gradient(180deg, #3f8cff 0%, #2b5dab 100%);
 }
 
 .rack-item-pdu {
-  background: linear-gradient(180deg,#ffb347 0%,#d47a00 100%);
+  background: linear-gradient(180deg, #ffb347 0%, #d47a00 100%);
 }
 
 .port-grid {
@@ -1055,13 +1079,13 @@ body.edit-mode .edit-only {
   font-size: 12px;
 }
 
-.socket-grid {
+.power-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.socket-block {
+.power-block {
   padding: 6px 10px;
   border-radius: 6px;
   background: #2f3241;

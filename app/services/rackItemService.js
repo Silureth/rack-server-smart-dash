@@ -64,8 +64,8 @@ function create(data) {
     data.brand,
     data.sn,
     data.orientation,
-    data.height_u,
-    data.position_u_start
+    data.height_u || 1,
+    data.position_u_start || 1
   );
 
   return id;

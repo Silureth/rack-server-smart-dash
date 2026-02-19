@@ -234,13 +234,13 @@ document.querySelectorAll(".resize-handle").forEach(handle => {
             document.removeEventListener("mouseup", onMouseUp);
 
             const newHeightU =
-                parseInt(server.style.height) / U_HEIGHT;
+                parseInt(item.style.height) / U_HEIGHT;
 
             fetch("/rack-items/resize", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: server.dataset.id,
+                    id: item.dataset.id,
                     height_u: newHeightU
                 })
             })
@@ -344,7 +344,7 @@ document.querySelectorAll(".item-edit-btn").forEach(btn => {
         document.getElementById("itemHeight").value = item.dataset.height;
         document.getElementById("itemPosition").value = item.dataset.position;
 
-        document.getElementById("serverSubmitBtn").textContent = "Update Server";
+        document.getElementById("serverSubmitBtn").textContent = "Update Rack item";
 
         const form = document.getElementById("rackItemForm");
         form.action = "/rack-items/update";
@@ -360,7 +360,7 @@ document.getElementById("cancelEditBtn")?.addEventListener("click", () => {
 
     form.reset();
     form.action = "/rack-items/create";
-    document.getElementById("serverSubmitBtn").textContent = "Add Server";
+    document.getElementById("serverSubmitBtn").textContent = "Add Rack item";
 
 });
 
@@ -399,6 +399,116 @@ function enableDiskDrag() {
     });
 }
 
+function renderAddDiskAccordion() {
+    return `
+    <div class="accordion">
+        <div class="accordion-header toggle-accordion">
+            ➕ Add Disk
+        </div>
+        <div class="accordion-body collapsed">
+            <form class="disk-form add-disk-form">
+
+                <div class="form-row">
+                    <select name="placement">
+                        <option value="front">Front</option>
+                        <option value="inside">Inside</option>
+                        <option value="back">Back</option>
+                    </select>
+
+                    <select name="subtype">
+                        <option value="sff">SFF</option>
+                        <option value="lff">LFF</option>
+                        <option value="pci">PCI</option>
+                    </select>
+
+                    <select name="type">
+                        <option value="hdd">HDD</option>
+                        <option value="ssd">SSD</option>
+                        <option value="nvme">NVMe</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <input name="brand" placeholder="Brand">
+                    <input name="name" placeholder="Model Name">
+                    <input name="serial" placeholder="Serial Number">
+                    <input name="capacity" placeholder="Capacity">
+                </div>
+
+                <div class="form-row">
+                    <input name="power_on_time" placeholder="Power On Time">
+                    <input name="health" placeholder="Health %">
+                    <input name="tbw" placeholder="TBW">
+                    <input name="remaining_time" placeholder="Remaining Time">
+                </div>
+
+                <div class="form-row">
+                    <input name="slot_id" placeholder="Slot ID (e.g. I:1:3)">
+                    <input name="pci_group" type="number" placeholder="PCI Group">
+                </div>
+
+                <button type="submit">Add Disk</button>
+            </form>
+        </div>
+    </div>
+    `;
+}
+function renderAddPortAccordion() {
+    return `
+    <div class="accordion">
+        <div class="accordion-header toggle-accordion">
+            ➕ Add Port
+        </div>
+        <div class="accordion-body collapsed">
+            <form class="port-form add-port-form">
+                <div class="form-row">
+                    <input name="name" placeholder="Port Name (e.g. eth0)">
+                    <input name="role" placeholder="Role (uplink, mgmt, lan)">
+                </div>
+                <button type="submit">Add Port</button>
+            </form>
+        </div>
+    </div>
+    `;
+}
+function renderAddPowerInputAccordion() {
+    return `
+    <div class="accordion">
+        <div class="accordion-header toggle-accordion">
+            🔌 Add Power Input
+        </div>
+        <div class="accordion-body collapsed">
+            <form class="power-input-form add-power-input-form">
+                <div class="form-row">
+                    <input name="name" placeholder="Input Name (PSU1, PSU2)" required>
+                    <input name="type" placeholder="Connector Type (C14, C20)">
+                </div>
+                <button type="submit">Add Power Input</button>
+            </form>
+        </div>
+    </div>
+    `;
+}
+function renderAddPowerOutletAccordion() {
+    return `
+    <div class="accordion">
+        <div class="accordion-header toggle-accordion">
+            ⚡ Add Power Outlet
+        </div>
+        <div class="accordion-body collapsed">
+            <form class="power-outlet-form add-power-outlet-form">
+                <div class="form-row">
+                    <input name="name" placeholder="Outlet Name (Outlet 1)" required>
+                    <input name="type" placeholder="Outlet Type (C13, C19)">
+                </div>
+                <button type="submit">Add Power Outlet</button>
+            </form>
+        </div>
+    </div>
+    `;
+}
+
+
 
 
 function renderItemPanel(data) {
@@ -410,54 +520,12 @@ function renderItemPanel(data) {
         <h3>${data.rackItem.name}</h3>
             <button id="closePanelBtn">✖</button>
         </div>
-        <div class="accordion">
-            <div class="accordion-header" id="toggleAddDisk">
-                ➕ Add Disk
-            </div>
-            <div class="accordion-body collapsed">
-                <form id="addDiskForm" class="disk-form">
-
-                    <div class="form-row">
-                        <select name="placement">
-                            <option value="front">Front</option>
-                            <option value="inside">Inside</option>
-                            <option value="back">Back</option>
-                        </select>
-
-                        <select name="subtype">
-                            <option value="sff">SFF</option>
-                            <option value="lff">LFF</option>
-                            <option value="pci">PCI</option>
-                        </select>
-
-                        <select name="type">
-                            <option value="hdd">HDD</option>
-                            <option value="ssd">SSD</option>
-                            <option value="nvme">NVMe</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row">
-                        <input name="brand" placeholder="Brand">
-                        <input name="name" placeholder="Model Name">
-                        <input name="serial" placeholder="Serial Number">
-                        <input name="capacity" placeholder="Capacity">
-                    </div>
-
-                    <div class="form-row">
-                        <input name="power_on_time" placeholder="Power On Time">
-                        <input name="health" placeholder="Health %">
-                        <input name="tbw" placeholder="TBW">
-                        <input name="remaining_time" placeholder="Remaining Time">
-                    </div>
-                <div class="form-row">
-                    <input name="slot_id" placeholder="Slot ID (e.g. I:1:3)">
-                    <input name="pci_group" type="number" placeholder="PCI Group">
-                </div>
-                <button type="submit">Add Disk</button>
-                </form>
-            </div>
-            <div class="item-components">
+        
+        ${data.rackItem.type === 'server' ? renderAddDiskAccordion() : ''}
+        ${['server', 'switch', 'pdu'].includes(data.rackItem.type) ? renderAddPortAccordion() : ''}        
+        ${['server', 'switch', 'pdu'].includes(data.rackItem.type) ? renderAddPowerInputAccordion() : ''}
+        ${data.rackItem.type === 'pdu' ? renderAddPowerOutletAccordion() : ''}
+        <div class="item-components">
             ${data.ports ? `
                 <div class="server-section ports">
                     <div class="section-title">
@@ -471,16 +539,30 @@ function renderItemPanel(data) {
                     </div>
                 </div>
             ` : ''}
-           ${data.sockets ? `
-                <div class="server-section sockets">
+           ${data.powerInputs ? `
+                <div class="server-section power-inputs">
                     <div class="section-title">
-                        Sockets
+                        🔌 Power Inputs
                         <span class="section-badge">
-                            ${data.sockets.length}
+                            ${data.powerInputs.length}
                         </span>
                     </div>
                     <div class="section-content">
-                        ${renderSockets(data.sockets)}
+                        ${renderPowerInputs(data.powerInputs)}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${data.rackItem.type === 'pdu' ? `
+                <div class="server-section power-outlets">
+                    <div class="section-title">
+                        ⚡ Power Outlets
+                        <span class="section-badge">
+                            ${data.powerOutlets ? data.powerOutlets.length : 0}
+                        </span>
+                    </div>
+                    <div class="section-content">
+                        ${renderPowerOutlets(data.powerOutlets || [])}
                     </div>
                 </div>
             ` : ''}
@@ -522,12 +604,6 @@ function renderItemPanel(data) {
         </div>        
         
     `;
-    const toggle = itemPanel.querySelector("#toggleAddDisk");
-    const body = itemPanel.querySelector(".accordion-body");
-
-    toggle.addEventListener("click", () => {
-        body.classList.toggle("collapsed");
-    });
 
     itemPanel.querySelectorAll(".server-section").forEach(section => {
 
@@ -573,45 +649,72 @@ function renderItemPanel(data) {
         });
 
     }
-
-    /* ================= Submit Logic ================= */
-
-    const form = itemPanel.querySelector("#addDiskForm");
-
-    form.addEventListener("submit", function (e) {
-
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const payload = Object.fromEntries(formData.entries());
-
-        fetch(`/rack-items/${currentItemId}/disks`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(() => {
-
-                this.reset();
-
-                fetch(`/rack-items/${currentItemId}/disks`)
-                    .then(res => res.json())
-                    .then(updated => {
-                        renderItemPanel(updated);
-                        itemPanel.classList.add("open");
-                        backdrop.classList.add("active");
-                    });
-
-            });
-
-    });
-
     enableDiskDrag();
 
 }
+
+function handleDiskSubmit(e, form) {
+    e.preventDefault();
+
+    const payload = Object.fromEntries(
+        new FormData(form).entries()
+    );
+
+    fetch(`/rack-items/${currentItemId}/disks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(() => refreshPanel());
+}
+function handlePortSubmit(e, form) {
+    e.preventDefault();
+
+    const payload = Object.fromEntries(
+        new FormData(form).entries()
+    );
+
+    fetch(`/rack-items/${currentItemId}/ports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(() => refreshPanel());
+}
+function handlePowerInputSubmit(e, form) {
+    e.preventDefault();
+
+    const payload = Object.fromEntries(
+        new FormData(form).entries()
+    );
+
+    fetch(`/rack-items/${currentItemId}/power-inputs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(() => refreshPanel());
+}
+
+function handlePowerOutletSubmit(e, form) {
+    e.preventDefault();
+
+    const payload = Object.fromEntries(
+        new FormData(form).entries()
+    );
+
+    fetch(`/rack-items/${currentItemId}/power-outlets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(() => refreshPanel());
+}
+
 
 function getHealthColor(health) {
 
@@ -640,17 +743,35 @@ function renderPorts(ports) {
         </div>
     `;
 }
-function renderSockets(sockets) {
+function renderPowerInputs(inputs) {
 
-    if (!sockets.length)
-        return '<div class="empty">No sockets</div>';
+    if (!inputs || !inputs.length)
+        return '<div class="empty">No power inputs</div>';
 
     return `
-        <div class="socket-grid">
-            ${sockets.map(s => `
-                <div class="socket-block" data-id="${s.id}">
-                    <div class="socket-name">${s.name}</div>
-                    <div class="socket-type">${s.type || ''}</div>
+        <div class="power-grid">
+            ${inputs.map(i => `
+                <div class="power-block" data-id="${i.id}">
+                    <div class="power-name">${i.name}</div>
+                    <div class="power-type">${i.type || ''}</div>
+                    <button class="power-delete-btn" data-id="${i.id}">✖</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+function renderPowerOutlets(outlets) {
+
+    if (!outlets || !outlets.length)
+        return '<div class="empty">No power outlets</div>';
+
+    return `
+        <div class="power-grid">
+            ${outlets.map(o => `
+                <div class="power-block outlet" data-id="${o.id}">
+                    <div class="power-name">${o.name}</div>
+                    <div class="power-type">${o.type || ''}</div>
+                    <button class="power-delete-btn" data-id="${o.id}">✖</button>
                 </div>
             `).join('')}
         </div>
@@ -776,74 +897,6 @@ function renderDisk(d) {
 }
 
 
-
-itemPanel.addEventListener("click", function (e) {
-
-    /* ================= CLOSE BUTTON ================= */
-
-    if (e.target.id === "closePanelBtn") {
-        closePanel();
-        return;
-    }
-
-    /* ================= DELETE DISK ================= */
-
-    if (e.target.classList.contains("disk-delete-btn")) {
-
-        const diskId = e.target.dataset.id;
-
-        if (!confirm("Delete this disk?")) return;
-
-        fetch(`/rack-items/disks/${diskId}`, {
-            method: "DELETE"
-        })
-            .then(res => res.json())
-            .then(() => refreshPanel());
-
-        return;
-    }
-
-    /* ================= SAVE DISK ================= */
-
-    if (e.target.classList.contains("disk-save-btn")) {
-
-        const diskId = e.target.dataset.id;
-        const diskBlock = e.target.closest(".disk-block");
-
-        const inputs = diskBlock.querySelectorAll("input");
-        const rawGroup = diskBlock.querySelector('input[name="pci_group"]').value;
-
-        const payload = {
-            slot_id: diskBlock.querySelector('input[name="slot_id"]').value,
-            pci_group: rawGroup !== "" ? parseInt(rawGroup) : null,
-            brand: diskBlock.querySelector('input[name="brand"]').value,
-            name: diskBlock.querySelector('input[name="name"]').value,
-            serial: diskBlock.querySelector('input[name="serial"]').value
-        };
-
-        //inputs.forEach(i => payload[i.name] = i.value);
-
-        fetch(`/rack-items/disks/${diskId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(() => refreshPanel());
-
-        return;
-    }
-
-    /* ================= INLINE EDIT TOGGLE ================= */
-
-    const diskBlock = e.target.closest(".disk-block");
-
-    if (diskBlock && e.target.closest(".disk-view")) {
-        diskBlock.classList.toggle("editing");
-        return;
-    }
-
-});
 function refreshPanel() {
 
     if (!currentItemId) return;
@@ -885,10 +938,93 @@ function saveDiskOrder(grid) {
 }
 
 
-
-
 backdrop.addEventListener("click", closePanel);
 
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closePanel();
 });
+
+itemPanel.addEventListener("click", function (e) {
+
+    // CLOSE PANEL
+    if (e.target.id === "closePanelBtn") {
+        closePanel();
+        return;
+    }
+
+    // ACCORDION
+    const accordionHeader = e.target.closest(".toggle-accordion");
+    if (accordionHeader) {
+        const body = accordionHeader.nextElementSibling;
+        if (body) body.classList.toggle("collapsed");
+        return;
+    }
+
+    // DELETE DISK
+    if (e.target.classList.contains("disk-delete-btn")) {
+        const diskId = e.target.dataset.id;
+        if (!confirm("Delete this disk?")) return;
+
+        fetch(`/rack-items/disks/${diskId}`, { method: "DELETE" })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+
+    // SAVE DISK
+    if (e.target.classList.contains("disk-save-btn")) {
+        const diskBlock = e.target.closest(".disk-block");
+
+        const rawGroup = diskBlock.querySelector('input[name="pci_group"]').value;
+
+        const payload = {
+            slot_id: diskBlock.querySelector('input[name="slot_id"]').value,
+            pci_group: rawGroup !== "" ? parseInt(rawGroup) : null,
+            brand: diskBlock.querySelector('input[name="brand"]').value,
+            name: diskBlock.querySelector('input[name="name"]').value,
+            serial: diskBlock.querySelector('input[name="serial"]').value
+        };
+
+        fetch(`/rack-items/disks/${diskBlock.dataset.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+
+    // INLINE EDIT
+    const diskBlock = e.target.closest(".disk-block");
+    if (diskBlock && e.target.closest(".disk-view")) {
+        diskBlock.classList.toggle("editing");
+        return;
+    }
+
+});
+
+itemPanel.addEventListener("submit", function (e) {
+
+    const form = e.target;
+
+    if (form.classList.contains("add-disk-form")) {
+        handleDiskSubmit(e, form);
+        return;
+    }
+
+    if (form.classList.contains("add-port-form")) {
+        handlePortSubmit(e, form);
+        return;
+    }
+
+
+    if (form.classList.contains("add-power-input-form")) {
+        handlePowerInputSubmit(e, form);
+    }
+
+    if (form.classList.contains("add-power-outlet-form")) {
+        handlePowerOutletSubmit(e, form);
+    }
+});
+

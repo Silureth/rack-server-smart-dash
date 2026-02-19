@@ -75,32 +75,52 @@ CREATE TABLE IF NOT EXISTS rack_item_ports (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   rack_item_id TEXT NOT NULL,
   name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('network','power')),
+  role TEXT, 
+  label TEXT,
   position_index INTEGER DEFAULT 0,
   is_deleted INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
   FOREIGN KEY (rack_item_id)
     REFERENCES rack_items(id)
     ON DELETE CASCADE
 );
+
 
 CREATE INDEX IF NOT EXISTS idx_ports_item
 ON rack_item_ports(rack_item_id);
 
-CREATE TABLE IF NOT EXISTS rack_item_sockets (
+
+-- ================= POWER INPUTS (device side) =================
+CREATE TABLE IF NOT EXISTS rack_item_power_inputs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   rack_item_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  type TEXT, -- C13, C19, etc
+  name TEXT NOT NULL,          -- PSU1, PSU2
+  type TEXT,                   -- C14, C20
   position_index INTEGER DEFAULT 0,
   is_deleted INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
   FOREIGN KEY (rack_item_id)
     REFERENCES rack_items(id)
     ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_sockets_item
-ON rack_item_sockets(rack_item_id);
+CREATE INDEX IF NOT EXISTS idx_power_inputs_item
+ON rack_item_power_inputs(rack_item_id);
+
+
+-- ================= POWER OUTLETS (PDU side) =================
+CREATE TABLE IF NOT EXISTS rack_item_power_outlets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rack_item_id TEXT NOT NULL,
+  name TEXT NOT NULL,          -- Outlet 1
+  type TEXT,                   -- C13, C19
+  position_index INTEGER DEFAULT 0,
+  is_deleted INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (rack_item_id)
+    REFERENCES rack_items(id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_power_outlets_item
+ON rack_item_power_outlets(rack_item_id);
