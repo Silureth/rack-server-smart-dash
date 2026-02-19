@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const rackService = require('./services/rackService');
-const serverService = require('./services/serverService');
 const rackItemService = require('./services/rackItemService');
 
 const app = express();
@@ -14,32 +13,35 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.use('/racks', require('./routes/racks'));
-app.use('/servers', require('./routes/servers'));
+app.use('/rack-items', require('./routes/rackItems'));
+//app.use('/disks', require('./routes/disks'));
+app.use('/rack-items', require('./routes/disks'));
+
 
 app.get('/', (req, res) => {
   const racks = rackService.getAll();
 
   const rackData = racks.map(rack => {
-    const servers = rackItemService.getByRack(rack.id);
+    const rackItems = rackItemService.getByRack(rack.id);
 
     const frontGrid = Array(rack.height_u).fill(null);
     const backGrid = Array(rack.height_u).fill(null);
 
-    servers.forEach(server => {
+    rackItems.forEach(item => {
       const targetGrid =
-        server.orientation === 'front'
+        item.orientation === 'front'
           ? frontGrid
           : backGrid;
 
       // mark first U
-      targetGrid[server.position_u_start - 1] = {
-        ...server,
+      targetGrid[item.position_u_start - 1] = {
+        ...item,
         isStart: true
       };
 
       // mark filler U
-      for (let i = 1; i < server.height_u; i++) {
-        targetGrid[server.position_u_start - 1 + i] = {
+      for (let i = 1; i < item.height_u; i++) {
+        targetGrid[item.position_u_start - 1 + i] = {
           isFiller: true
         };
       }

@@ -67,8 +67,8 @@ router.post('/resize', (req, res) => {
     }
 });
 router.get('/:id/disks', (req, res) => {
-    const serverId = req.params.id;
-    res.json(serverService.getDisks(serverId));
+    const rackItemId = req.params.id;
+    res.json(serverService.getDisks(rackItemId));
 });
 
 router.post('/:id/disks', (req, res) => {
@@ -103,7 +103,7 @@ router.put("/disks/:id", (req, res) => {
 
 router.post('/:id/disks/reorder', (req, res) => {
 
-  const serverId = req.params.id;
+  const rackItemId = req.params.id;
   const { placement, order } = req.body;
 
   if (!placement || !Array.isArray(order)) {
@@ -111,7 +111,7 @@ router.post('/:id/disks/reorder', (req, res) => {
   }
 
   try {
-    serverService.reorderDisks(serverId, placement, order);
+    serverService.reorderDisks(rackItemId, placement, order);
     res.json({ success: true });
   } catch (err) {
     console.error(err);

@@ -40,8 +40,8 @@
 
                         <!-- U NUMBERS -->
                         <div class="u-numbers">
-                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
-                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px">
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>                                
+                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px; height:<%= U_HEIGHT %>px;">
                                     <%= num %>
                                 </div>
                                 <% }) %>
@@ -53,7 +53,7 @@
                             <% rack.frontGrid.forEach(slot=> { %>
 
                                 <% if (slot && slot.isStart) { %>
-                                    <div class="server draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
+                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
                                         data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
                                         data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
                                         data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
@@ -80,9 +80,9 @@
 
                                         <div class="resize-handle"></div>
                                         <div class="server-actions">
-                                            <button class="server-edit-btn">✏</button>
-                                            <button class="server-config-btn">⚙</button>
-                                            <form action="/servers/delete" method="POST" class="delete-form">
+                                            <button class="item-edit-btn">✏</button>
+                                            <button class="item-config-btn">⚙</button>
+                                            <form action="/rack-items/delete" method="POST" class="delete-form">
                                                 <input type="hidden" name="id" value="<%= slot.id %>">
                                                 <button type="submit">✖</button>
                                             </form>
@@ -107,8 +107,8 @@
 
                         <!-- U NUMBERS -->
                         <div class="u-numbers">
-                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
-                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px">
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>                                
+                                <div class="u-number" style="top:<%= index * U_HEIGHT %>px; height:<%= U_HEIGHT %>px;">
                                     <%= num %>
                                 </div>
                                 <% }) %>
@@ -120,7 +120,7 @@
                             <% rack.backGrid.forEach(slot=> { %>
 
                                 <% if (slot && slot.isStart) { %>
-                                    <div class="server draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
+                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
                                         data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
                                         data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
                                         data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
@@ -148,9 +148,9 @@
 
                                         <div class="resize-handle"></div>
                                         <div class="server-actions">
-                                            <button class="server-edit-btn">✏</button>
-                                            <button class="server-config-btn">⚙</button>
-                                            <form action="/servers/delete" method="POST" class="delete-form">
+                                            <button class="item-edit-btn">✏</button>
+                                            <button class="item-config-btn">⚙</button>
+                                            <form action="/rack-items/delete" method="POST" class="delete-form">
                                                 <input type="hidden" name="id" value="<%= slot.id %>">
                                                 <button type="submit">✖</button>
                                             </form>
@@ -170,9 +170,9 @@
 
 
             <div class="edit-only">
-                <form id="serverForm" action="/servers/create" method="POST" class="server-form">
+                <form id="rackItemForm" action="/rack-items/create" method="POST" class="server-form">
 
-                    <input type="hidden" name="id" id="serverId">
+                    <input type="hidden" name="id" id="rackItemId">
                     <input type="hidden" name="rack_id" value="<%= rack.id %>">
 
                     <div class="form-grid">
@@ -193,9 +193,14 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Type</label>
-                            <input id="serverType" name="type">
+                            <label>Item Type</label>
+                            <select id="itemType" name="type" required>
+                                <option value="server">Server</option>
+                                <option value="switch">Network Switch</option>
+                                <option value="pdu">Power Outlet (PDU)</option>
+                            </select>
                         </div>
+
 
                         <div class="form-group">
                             <label>Orientation</label>
@@ -207,12 +212,12 @@
 
                         <div class="form-group">
                             <label>U Height</label>
-                            <input id="serverHeight" name="height_u" type="number" min="1" max="2">
+                            <input id="itemHeight" name="height_u" type="number" min="1" max="2">
                         </div>
 
                         <div class="form-group">
                             <label>U Position</label>
-                            <input id="serverPosition" name="position_u_start" type="number" min="1"
+                            <input id="itemPosition" name="position_u_start" type="number" min="1"
                                 max="<%= rack.height_u %>">
                         </div>
 
@@ -229,7 +234,7 @@
             <hr>
 
             <% }) %>
-                <div id="serverPanel" class="server-panel"></div>
+                <div id="itemPanel" class="item-panel"></div>
                 <div id="panelBackdrop" class="panel-backdrop"></div>
                 <script src="/app.js"></script>
 

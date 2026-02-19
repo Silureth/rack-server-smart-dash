@@ -22,180 +22,182 @@ editToggle?.addEventListener("change", () => {
 });
 
 /* ===================== DRAG ===================== */
+function enableRackItemDrag() {
+    document.querySelectorAll(".draggable").forEach(el => {
 
-document.querySelectorAll(".draggable").forEach(el => {
+        el.addEventListener("mousedown", (e) => {
+            if (!isEditEnabled()) return;
 
-    el.addEventListener("mousedown", (e) => {
-        if (!isEditEnabled()) return;
+            if (e.target.closest(".item-config-btn")) return;
 
-        if (e.target.closest(".server-config-btn")) return;
+            if (e.target.closest(".item-edit-btn")) return;
 
-        if (e.target.closest(".server-edit-btn")) return;
+            if (e.target.closest(".delete-form")) return;
 
-        if (e.target.closest(".delete-form")) return;
+            if (e.target.closest(".resize-handle")) return;
 
-        if (e.target.closest(".resize-handle")) return;
-
-        const startX = e.clientX;
-        const startY = e.clientY;
-
-
-
-        e.preventDefault();
+            const startX = e.clientX;
+            const startY = e.clientY;
 
 
-        let hasMoved = false;
-        const originalRack = el.parentElement;
-        const originalTop = parseInt(el.dataset.originalTop);
 
-        const heightU = parseInt(el.dataset.height);
-        const serverId = el.dataset.id;
+            e.preventDefault();
 
-        let currentRack = originalRack;
 
-        function restoreOriginal() {
-            originalRack.appendChild(el);
-            el.style.top = originalTop + "px";
-        }
+            let hasMoved = false;
+            const originalRack = el.parentElement;
+            const originalTop = parseInt(el.dataset.originalTop);
 
-        function getRackUnderMouse(x, y) {
-            const racks = document.querySelectorAll(".rack");
+            const heightU = parseInt(el.dataset.height);
+            const rackItemId = el.dataset.id;
 
-            for (const rack of racks) {
+            let currentRack = originalRack;
+
+            function restoreOriginal() {
+                originalRack.appendChild(el);
+                el.style.top = originalTop + "px";
+            }
+
+            function getRackUnderMouse(x, y) {
+                const racks = document.querySelectorAll(".rack");
+
+                for (const rack of racks) {
+                    const rect = rack.getBoundingClientRect();
+                    if (
+                        x >= rect.left &&
+                        x <= rect.right &&
+                        y >= rect.top &&
+                        y <= rect.bottom
+                    ) {
+                        return rack;
+                    }
+                }
+                return null;
+            }
+
+            function calculatePosition(rack, clientY) {
                 const rect = rack.getBoundingClientRect();
-                if (
-                    x >= rect.left &&
-                    x <= rect.right &&
-                    y >= rect.top &&
-                    y <= rect.bottom
-                ) {
-                    return rack;
+                const rackHeightU = rack.clientHeight / U_HEIGHT;
+
+                let relativeY = clientY - rect.top;
+
+                if (relativeY < 0) relativeY = 0;
+                if (relativeY > rack.clientHeight - el.clientHeight)
+                    relativeY = rack.clientHeight - el.clientHeight;
+
+                const snappedTop =
+                    Math.round(relativeY / U_HEIGHT) * U_HEIGHT;
+
+                const uStart =
+                    rackHeightU - (snappedTop / U_HEIGHT) - heightU + 1;
+
+                const uEnd = uStart + heightU - 1;
+
+                return { snappedTop, uStart, uEnd };
+            }
+
+            function checkCollision(rack, uStart, uEnd) {
+                const rackHeightU = rack.clientHeight / U_HEIGHT;
+
+                const others = Array.from(
+                    rack.querySelectorAll(".draggable")
+                ).filter(s => s !== el);
+
+                for (const s of others) {
+
+                    const otherTop = parseInt(s.style.top);
+                    const otherHeight = parseInt(s.dataset.height);
+
+                    const otherUStart =
+                        rackHeightU - (otherTop / U_HEIGHT) - otherHeight + 1;
+
+                    const otherUEnd = otherUStart + otherHeight - 1;
+
+                    if (uStart <= otherUEnd && uEnd >= otherUStart) {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return null;
-        }
 
-        function calculatePosition(rack, clientY) {
-            const rect = rack.getBoundingClientRect();
-            const rackHeightU = rack.clientHeight / U_HEIGHT;
+            function onMouseMove(e) {
 
-            let relativeY = clientY - rect.top;
+                const deltaX = Math.abs(e.clientX - startX);
+                const deltaY = Math.abs(e.clientY - startY);
 
-            if (relativeY < 0) relativeY = 0;
-            if (relativeY > rack.clientHeight - el.clientHeight)
-                relativeY = rack.clientHeight - el.clientHeight;
-
-            const snappedTop =
-                Math.round(relativeY / U_HEIGHT) * U_HEIGHT;
-
-            const uStart =
-                rackHeightU - (snappedTop / U_HEIGHT) - heightU + 1;
-
-            const uEnd = uStart + heightU - 1;
-
-            return { snappedTop, uStart, uEnd };
-        }
-
-        function checkCollision(rack, uStart, uEnd) {
-            const rackHeightU = rack.clientHeight / U_HEIGHT;
-
-            const others = Array.from(
-                rack.querySelectorAll(".draggable")
-            ).filter(s => s !== el);
-
-            for (const s of others) {
-
-                const otherTop = parseInt(s.style.top);
-                const otherHeight = parseInt(s.dataset.height);
-
-                const otherUStart =
-                    rackHeightU - (otherTop / U_HEIGHT) - otherHeight + 1;
-
-                const otherUEnd = otherUStart + otherHeight - 1;
-
-                if (uStart <= otherUEnd && uEnd >= otherUStart) {
-                    return true;
+                // Require small movement before drag activates
+                if (!hasMoved) {
+                    if (deltaX < 5 && deltaY < 5) return;
+                    hasMoved = true;
                 }
-            }
-            return false;
-        }
 
-        function onMouseMove(e) {
+                const targetRack = getRackUnderMouse(e.clientX, e.clientY);
+                if (!targetRack) return;
 
-            const deltaX = Math.abs(e.clientX - startX);
-            const deltaY = Math.abs(e.clientY - startY);
+                if (targetRack !== currentRack) {
+                    currentRack = targetRack;
+                    targetRack.appendChild(el);
+                }
 
-            // Require small movement before drag activates
-            if (!hasMoved) {
-                if (deltaX < 5 && deltaY < 5) return;
-                hasMoved = true;
-            }
+                const { snappedTop, uStart, uEnd } =
+                    calculatePosition(currentRack, e.clientY);
 
-            const targetRack = getRackUnderMouse(e.clientX, e.clientY);
-            if (!targetRack) return;
+                const collision =
+                    checkCollision(currentRack, uStart, uEnd);
 
-            if (targetRack !== currentRack) {
-                currentRack = targetRack;
-                targetRack.appendChild(el);
+                el.style.top = snappedTop + "px";
+
+                el.classList.toggle("invalid", collision);
+                el.classList.toggle("valid", !collision);
             }
 
-            const { snappedTop, uStart, uEnd } =
-                calculatePosition(currentRack, e.clientY);
 
-            const collision =
-                checkCollision(currentRack, uStart, uEnd);
+            function onMouseUp(e) {
 
-            el.style.top = snappedTop + "px";
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
 
-            el.classList.toggle("invalid", collision);
-            el.classList.toggle("valid", !collision);
-        }
+                if (!hasMoved) return;
+                el.classList.remove("valid", "invalid");
 
+                const { snappedTop, uStart, uEnd } =
+                    calculatePosition(currentRack, e.clientY);
 
-        function onMouseUp(e) {
+                const collision =
+                    checkCollision(currentRack, uStart, uEnd);
 
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
+                if (collision) {
+                    restoreOriginal();
+                    return;
+                }
 
-            if (!hasMoved) return;
-            el.classList.remove("valid", "invalid");
+                const orientation =
+                    currentRack.dataset.orientation;
 
-            const { snappedTop, uStart, uEnd } =
-                calculatePosition(currentRack, e.clientY);
-
-            const collision =
-                checkCollision(currentRack, uStart, uEnd);
-
-            if (collision) {
-                restoreOriginal();
-                return;
-            }
-
-            const orientation =
-                currentRack.dataset.orientation;
-
-            fetch("/servers/move", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: serverId,
-                    position_u_start: uStart,
-                    orientation
+                fetch("/rack-items/move", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: rackItemId,
+                        position_u_start: uStart,
+                        orientation
+                    })
                 })
-            })
-                .then(res => res.json())
-                .then(() => {
-                    // update canonical top after successful move
-                    el.dataset.originalTop = snappedTop;
-                    el.style.top = snappedTop + "px";
-                });
-        }
+                    .then(res => res.json())
+                    .then(() => {
+                        // update canonical top after successful move
+                        el.dataset.originalTop = snappedTop;
+                        el.style.top = snappedTop + "px";
+                    });
+            }
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
+
     });
-
-});
+}
+enableRackItemDrag();
 
 
 /* ===================== RESIZE ===================== */
@@ -208,10 +210,10 @@ document.querySelectorAll(".resize-handle").forEach(handle => {
 
         e.stopPropagation();
 
-        const server = handle.closest(".server");
+        const item = handle.closest(".rack-item");
 
         const startY = e.clientY;
-        const startHeight = server.clientHeight;
+        const startHeight = item.clientHeight;
 
         function onMouseMove(e) {
             const delta = e.clientY - startY;
@@ -224,7 +226,7 @@ document.querySelectorAll(".resize-handle").forEach(handle => {
             if (newHeight > U_HEIGHT * 2)
                 newHeight = U_HEIGHT * 2;
 
-            server.style.height = newHeight + "px";
+            item.style.height = newHeight + "px";
         }
 
         function onMouseUp() {
@@ -234,7 +236,7 @@ document.querySelectorAll(".resize-handle").forEach(handle => {
             const newHeightU =
                 parseInt(server.style.height) / U_HEIGHT;
 
-            fetch("/servers/resize", {
+            fetch("/rack-items/resize", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -274,16 +276,16 @@ function highlightOccupied() {
 
         rack.querySelectorAll(".u-highlight").forEach(el => el.remove());
 
-        const servers = rack.querySelectorAll(".server");
+        const servers = rack.querySelectorAll(".rack-item");
 
-        servers.forEach(server => {
+        servers.forEach(item => {
 
             const highlight = document.createElement("div");
 
             highlight.className = "u-highlight";
 
-            highlight.style.top = server.style.top;
-            highlight.style.height = server.style.height;
+            highlight.style.top = item.style.top;
+            highlight.style.height = item.style.height;
 
             rack.appendChild(highlight);
         });
@@ -293,10 +295,10 @@ function highlightOccupied() {
 
 highlightOccupied();
 
-const serverPanel = document.getElementById("serverPanel");
-let currentServerId = null;
+const itemPanel = document.getElementById("itemPanel");
+let currentItemId = null;
 
-document.querySelectorAll(".server-config-btn").forEach(btn => {
+document.querySelectorAll(".item-config-btn").forEach(btn => {
 
     btn.addEventListener("mousedown", function (e) {
         e.stopPropagation();
@@ -307,22 +309,22 @@ document.querySelectorAll(".server-config-btn").forEach(btn => {
         e.stopPropagation();
         e.preventDefault();
 
-        const server = btn.closest(".server");
-        currentServerId = server.dataset.id;
+        const item = btn.closest(".rack-item");
+        currentItemId = item.dataset.id;
 
-        fetch(`/servers/${currentServerId}/disks`)
+        fetch(`/rack-items/${currentItemId}/disks`)
             .then(res => res.json())
             .then(data => {
 
-                renderServerPanel(data);
-                serverPanel.classList.add("open");
+                renderItemPanel(data);
+                itemPanel.classList.add("open");
                 backdrop.classList.add("active");
             });
     });
 
 });
 
-document.querySelectorAll(".server-edit-btn").forEach(btn => {
+document.querySelectorAll(".item-edit-btn").forEach(btn => {
 
     btn.addEventListener("mousedown", e => e.stopPropagation());
 
@@ -331,21 +333,21 @@ document.querySelectorAll(".server-edit-btn").forEach(btn => {
         e.stopPropagation();
         e.preventDefault();
 
-        const server = btn.closest(".server");
+        const item = btn.closest(".rack-item");
 
-        document.getElementById("serverId").value = server.dataset.id;
-        document.getElementById("serverName").value = server.dataset.name || "";
-        document.getElementById("serverBrand").value = server.dataset.brand || "";
-        document.getElementById("serverSn").value = server.dataset.sn || "";
-        document.getElementById("serverType").value = server.dataset.type || "";
-        document.getElementById("serverOrientation").value = server.dataset.orientation;
-        document.getElementById("serverHeight").value = server.dataset.height;
-        document.getElementById("serverPosition").value = server.dataset.position;
+        document.getElementById("rackItemId").value = item.dataset.id;
+        document.getElementById("serverName").value = item.dataset.name || "";
+        document.getElementById("serverBrand").value = item.dataset.brand || "";
+        document.getElementById("serverSn").value = item.dataset.sn || "";
+        document.getElementById("itemType").value = item.dataset.type || "";
+        document.getElementById("serverOrientation").value = item.dataset.orientation;
+        document.getElementById("itemHeight").value = item.dataset.height;
+        document.getElementById("itemPosition").value = item.dataset.position;
 
         document.getElementById("serverSubmitBtn").textContent = "Update Server";
 
-        const form = document.getElementById("serverForm");
-        form.action = "/servers/update";
+        const form = document.getElementById("rackItemForm");
+        form.action = "/rack-items/update";
 
         form.scrollIntoView({ behavior: "smooth", block: "center" });
     });
@@ -354,10 +356,10 @@ document.querySelectorAll(".server-edit-btn").forEach(btn => {
 
 document.getElementById("cancelEditBtn")?.addEventListener("click", () => {
 
-    const form = document.getElementById("serverForm");
+    const form = document.getElementById("rackItemForm");
 
     form.reset();
-    form.action = "/servers/create";
+    form.action = "/rack-items/create";
     document.getElementById("serverSubmitBtn").textContent = "Add Server";
 
 });
@@ -399,13 +401,13 @@ function enableDiskDrag() {
 
 
 
-function renderServerPanel(data) {
+function renderItemPanel(data) {
 
-    if (!data || !data.server) return;
+    if (!data || !data.rackItem) return;
 
-    serverPanel.innerHTML = `
+    itemPanel.innerHTML = `
         <div class="panel-header">
-        <h3>${data.server.name}</h3>
+        <h3>${data.rackItem.name}</h3>
             <button id="closePanelBtn">✖</button>
         </div>
 <div class="accordion">
@@ -500,14 +502,14 @@ function renderServerPanel(data) {
         
         
     `;
-    const toggle = serverPanel.querySelector("#toggleAddDisk");
-    const body = serverPanel.querySelector(".accordion-body");
+    const toggle = itemPanel.querySelector("#toggleAddDisk");
+    const body = itemPanel.querySelector(".accordion-body");
 
     toggle.addEventListener("click", () => {
         body.classList.toggle("collapsed");
     });
 
-    serverPanel.querySelectorAll(".server-section").forEach(section => {
+    itemPanel.querySelectorAll(".server-section").forEach(section => {
 
         const header = section.querySelector(".section-title");
         if (!header) return;
@@ -517,17 +519,17 @@ function renderServerPanel(data) {
         });
 
     });
-    serverPanel.querySelector(".server-section.inside")
+    itemPanel.querySelector(".server-section.inside")
         ?.classList.add("section-collapsed");
 
 
     /* ================= Placement Logic ================= */
 
-    const placementSelect = serverPanel.querySelector(
+    const placementSelect = itemPanel.querySelector(
         'select[name="placement"]'
     );
 
-    const subtypeSelect = serverPanel.querySelector(
+    const subtypeSelect = itemPanel.querySelector(
         'select[name="subtype"]'
     );
 
@@ -554,7 +556,7 @@ function renderServerPanel(data) {
 
     /* ================= Submit Logic ================= */
 
-    const form = serverPanel.querySelector("#addDiskForm");
+    const form = itemPanel.querySelector("#addDiskForm");
 
     form.addEventListener("submit", function (e) {
 
@@ -563,7 +565,7 @@ function renderServerPanel(data) {
         const formData = new FormData(this);
         const payload = Object.fromEntries(formData.entries());
 
-        fetch(`/servers/${currentServerId}/disks`, {
+        fetch(`/rack-items/${currentItemId}/disks`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -575,11 +577,11 @@ function renderServerPanel(data) {
 
                 this.reset();
 
-                fetch(`/servers/${currentServerId}/disks`)
+                fetch(`/rack-items/${currentItemId}/disks`)
                     .then(res => res.json())
                     .then(updated => {
-                        renderServerPanel(updated);
-                        serverPanel.classList.add("open");
+                        renderItemPanel(updated);
+                        itemPanel.classList.add("open");
                         backdrop.classList.add("active");
                     });
 
@@ -720,7 +722,7 @@ function renderDisk(d) {
 
 
 
-serverPanel.addEventListener("click", function (e) {
+itemPanel.addEventListener("click", function (e) {
 
     /* ================= CLOSE BUTTON ================= */
 
@@ -737,7 +739,7 @@ serverPanel.addEventListener("click", function (e) {
 
         if (!confirm("Delete this disk?")) return;
 
-        fetch(`/servers/disks/${diskId}`, {
+        fetch(`/rack-items/disks/${diskId}`, {
             method: "DELETE"
         })
             .then(res => res.json())
@@ -766,7 +768,7 @@ serverPanel.addEventListener("click", function (e) {
 
         //inputs.forEach(i => payload[i.name] = i.value);
 
-        fetch(`/servers/disks/${diskId}`, {
+        fetch(`/rack-items/disks/${diskId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -789,20 +791,20 @@ serverPanel.addEventListener("click", function (e) {
 });
 function refreshPanel() {
 
-    if (!currentServerId) return;
+    if (!currentItemId) return;
 
-    fetch(`/servers/${currentServerId}/disks`)
+    fetch(`/rack-items/${currentItemId}/disks`)
         .then(res => res.json())
         .then(updated => {
-            renderServerPanel(updated);
-            serverPanel.classList.add("open");
+            renderItemPanel(updated);
+            itemPanel.classList.add("open");
             backdrop.classList.add("active");
         });
 }
 
 
 function closePanel() {
-    serverPanel.classList.remove("open");
+    itemPanel.classList.remove("open");
     backdrop.classList.remove("active");
 }
 
@@ -817,7 +819,7 @@ function saveDiskOrder(grid) {
             section.classList.contains("inside") ? "inside" :
                 "back";
 
-    fetch(`/servers/${currentServerId}/disks/reorder`, {
+    fetch(`/rack-items/${currentItemId}/disks/reorder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

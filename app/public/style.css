@@ -146,7 +146,7 @@ h3 {
 .rack {
   position: relative;
   width: 420px;
-  /* height: calc(42 * 24px); */
+  height: calc(42 * 24px);
 
   background-color: var(--rack-bg);
   border: 2px solid var(--rack-border);
@@ -201,7 +201,7 @@ h3 {
 /* Servers */
 /* ========================= */
 
-.server {
+.rack-item {
   position: absolute;
   left: 4px;
   right: 4px;
@@ -246,7 +246,7 @@ h3 {
 }
 
 
-.server:hover {
+.rack-item:hover {
   background: linear-gradient(180deg,
       #7c8dd8 0%,
       #50546d 100%);
@@ -331,7 +331,7 @@ h3 {
   background: #e74c3c;
 }
 
-body.edit-mode .server {
+body.edit-mode .rack-item {
   cursor: grab;
   outline: 1px solid var(--accent-cyan);
 }
@@ -369,12 +369,13 @@ body.edit-mode .resize-handle {
 
 .rack-with-numbers {
   display: flex;
+  align-items: stretch;
 }
 
 .u-numbers {
   position: relative;
   width: 45px;
-  height: 840px;
+  height: 100%;
   margin-right: 6px;
 }
 
@@ -424,7 +425,7 @@ body.edit-mode .edit-only {
 /* Side Panel */
 /* ========================= */
 
-.server-panel {
+.item-panel {
   position: fixed;
   top: 0;
   right: 0;
@@ -446,7 +447,7 @@ body.edit-mode .edit-only {
 }
 
 
-.server-panel.open {
+.item-panel.open {
   transform: translateX(0);
 }
 
@@ -784,8 +785,8 @@ body.edit-mode .edit-only {
   margin-bottom: 8px;
 }
 
-.server-panel input,
-.server-panel select {
+.item-panel input,
+.item-panel select {
   padding: 4px;
   font-size: 12px;
 }
@@ -858,12 +859,12 @@ body.edit-mode .edit-only {
   background: #6272a4;
 }
 
-.server-edit-btn:hover {
+.item-edit-btn:hover {
   background: rgba(255, 193, 7, 0.8);
   /* amber */
 }
 
-.server-config-btn:hover {
+.item-config-btn:hover {
   background: rgba(0, 123, 255, 0.8);
   /* blue */
 }
@@ -1026,4 +1027,16 @@ body.edit-mode .edit-only {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   margin: 0;
+}
+
+.rack-item-server {
+  background: linear-gradient(180deg,#6272a4 0%,#44475a 100%);
+}
+
+.rack-item-switch {
+  background: linear-gradient(180deg,#3f8cff 0%,#2b5dab 100%);
+}
+
+.rack-item-pdu {
+  background: linear-gradient(180deg,#ffb347 0%,#d47a00 100%);
 }
