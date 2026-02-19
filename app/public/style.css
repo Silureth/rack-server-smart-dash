@@ -1040,3 +1040,17 @@ body.edit-mode .edit-only {
 .rack-item-pdu {
   background: linear-gradient(180deg,#ffb347 0%,#d47a00 100%);
 }
+
+.port-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.port-block {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #2f3241;
+  border: 1px solid #44475a;
+  font-size: 12px;
+}

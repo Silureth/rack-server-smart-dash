@@ -14,8 +14,8 @@ app.use(express.static('public'));
 
 app.use('/racks', require('./routes/racks'));
 app.use('/rack-items', require('./routes/rackItems'));
-//app.use('/disks', require('./routes/disks'));
 app.use('/rack-items', require('./routes/disks'));
+app.use('/ports', require('./routes/ports'));
 
 
 app.get('/', (req, res) => {

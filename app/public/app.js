@@ -410,96 +410,102 @@ function renderItemPanel(data) {
         <h3>${data.rackItem.name}</h3>
             <button id="closePanelBtn">✖</button>
         </div>
-<div class="accordion">
-        <div class="accordion-header" id="toggleAddDisk">
-            ➕ Add Disk
-        </div>
-        <div class="accordion-body collapsed">
-        <form id="addDiskForm" class="disk-form">
-
-            <div class="form-row">
-                <select name="placement">
-                    <option value="front">Front</option>
-                    <option value="inside">Inside</option>
-                    <option value="back">Back</option>
-                </select>
-
-                <select name="subtype">
-                    <option value="sff">SFF</option>
-                    <option value="lff">LFF</option>
-                    <option value="pci">PCI</option>
-                </select>
-
-                <select name="type">
-                    <option value="hdd">HDD</option>
-                    <option value="ssd">SSD</option>
-                    <option value="nvme">NVMe</option>
-                </select>
+        <div class="accordion">
+            <div class="accordion-header" id="toggleAddDisk">
+                ➕ Add Disk
             </div>
+            <div class="accordion-body collapsed">
+                <form id="addDiskForm" class="disk-form">
 
-            <div class="form-row">
-                <input name="brand" placeholder="Brand">
-                <input name="name" placeholder="Model Name">
-                <input name="serial" placeholder="Serial Number">
-                <input name="capacity" placeholder="Capacity">
-            </div>
+                    <div class="form-row">
+                        <select name="placement">
+                            <option value="front">Front</option>
+                            <option value="inside">Inside</option>
+                            <option value="back">Back</option>
+                        </select>
 
-            <div class="form-row">
-                <input name="power_on_time" placeholder="Power On Time">
-                <input name="health" placeholder="Health %">
-                <input name="tbw" placeholder="TBW">
-                <input name="remaining_time" placeholder="Remaining Time">
-            </div>
-            <div class="form-row">
-            <input name="slot_id" placeholder="Slot ID (e.g. I:1:3)">
-            <input name="pci_group" type="number" placeholder="PCI Group">
-            </div>
+                        <select name="subtype">
+                            <option value="sff">SFF</option>
+                            <option value="lff">LFF</option>
+                            <option value="pci">PCI</option>
+                        </select>
 
+                        <select name="type">
+                            <option value="hdd">HDD</option>
+                            <option value="ssd">SSD</option>
+                            <option value="nvme">NVMe</option>
+                        </select>
+                    </div>
 
+                    <div class="form-row">
+                        <input name="brand" placeholder="Brand">
+                        <input name="name" placeholder="Model Name">
+                        <input name="serial" placeholder="Serial Number">
+                        <input name="capacity" placeholder="Capacity">
+                    </div>
 
-            <button type="submit">Add Disk</button>
-
-        </form>
-        </div>
-        <div class="server-visual-horizontal">
-
-            <div class="server-section front">
-                <div class="section-title">
-                    Front
-                    <span class="section-badge">${data.disks.front.length}</span>
-                    <span class="collapse-icon">▾</span>
+                    <div class="form-row">
+                        <input name="power_on_time" placeholder="Power On Time">
+                        <input name="health" placeholder="Health %">
+                        <input name="tbw" placeholder="TBW">
+                        <input name="remaining_time" placeholder="Remaining Time">
+                    </div>
+                <div class="form-row">
+                    <input name="slot_id" placeholder="Slot ID (e.g. I:1:3)">
+                    <input name="pci_group" type="number" placeholder="PCI Group">
                 </div>
-                <div class="section-content">
-                    ${renderGrid(data.disks.front, 2, "front")}
-                </div>
+                <button type="submit">Add Disk</button>
+                </form>
             </div>
-
-            <div class="server-section inside">
-                <div class="section-title collapsible">
-                    Inside
-                    <span class="section-badge">${data.disks.inside.length}</span>
-                    <span class="collapse-icon">▾</span>
+                ${data.rackItem.type !== 'server' ? `
+                <div class="server-section ports">
+                    <div class="section-title">
+                        Ports
+                        <span class="section-badge">
+                            ${data.ports ? data.ports.length : 0}
+                        </span>
+                    </div>
+                    <div class="section-content">
+                        ${renderPorts(data.ports || [])}
+                    </div>
                 </div>
-                <div class="section-content collapsed">
-                    ${renderGrid(data.disks.inside, 4, "inside")}
+            ` : ''}
+            <div class="server-visual-horizontal">
+                <div class="server-section front">
+                    <div class="section-title">
+                        Front
+                        <span class="section-badge">${data.disks.front.length}</span>
+                        <span class="collapse-icon">▾</span>
+                    </div>
+                    <div class="section-content">
+                        ${renderGrid(data.disks.front, 2, "front")}
+                    </div>
                 </div>
-            </div>
 
-            <div class="server-section back">
-                <div class="section-title">
-                    Back
-                    <span class="section-badge">${data.disks.back.length}</span>
-                    <span class="collapse-icon">▾</span>
+                <div class="server-section inside">
+                    <div class="section-title collapsible">
+                        Inside
+                        <span class="section-badge">${data.disks.inside.length}</span>
+                        <span class="collapse-icon">▾</span>
+                    </div>
+                    <div class="section-content collapsed">
+                        ${renderGrid(data.disks.inside, 4, "inside")}
+                    </div>
                 </div>
-                <div class="section-content">
-                    ${renderGrid(data.disks.back, 2, "back")}
+
+                <div class="server-section back">
+                    <div class="section-title">
+                        Back
+                        <span class="section-badge">${data.disks.back.length}</span>
+                        <span class="collapse-icon">▾</span>
+                    </div>
+                    <div class="section-content">
+                        ${renderGrid(data.disks.back, 2, "back")}
+                    </div>
                 </div>
-            </div>
 
 
-        </div>
-
-        
+        </div>        
         
     `;
     const toggle = itemPanel.querySelector("#toggleAddDisk");
@@ -601,6 +607,24 @@ function getHealthColor(health) {
     if (h >= 70) return "#2ecc71";
     if (h >= 35) return "#f1c40f";
     return "#e74c3c";
+}
+
+function renderPorts(ports) {
+
+    if (!ports || !ports.length)
+        return '<div class="empty">No ports</div>';
+
+    return `
+        <div class="port-grid">
+            ${ports.map(p => `
+                <div class="port-block" data-id="${p.id}">
+                    <div class="port-name">${p.name}</div>
+                    <div class="port-role">${p.role}</div>
+                    <button class="port-delete-btn" data-id="${p.id}">✖</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
 
 

@@ -69,3 +69,21 @@ ON disk_metrics(disk_id);
 
 CREATE INDEX IF NOT EXISTS idx_disk_metrics_time
 ON disk_metrics(disk_id, timestamp DESC);
+
+
+CREATE TABLE IF NOT EXISTS rack_item_ports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rack_item_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL CHECK(role IN ('network','power')),
+  position_index INTEGER DEFAULT 0,
+  is_deleted INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (rack_item_id)
+    REFERENCES rack_items(id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_ports_item
+ON rack_item_ports(rack_item_id);
