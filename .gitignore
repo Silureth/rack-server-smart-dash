@@ -1,0 +1,4 @@
+app/node_modules
+data/.initialized
+data/app.db
+data/app.db*
