@@ -17,12 +17,9 @@ function getByRackItem(rackItemId) {
   `).all(rackItemId);
 
   return {
-    rackItem,
-    disks: {
-      front: disks.filter(d => d.placement === 'front'),
-      inside: disks.filter(d => d.placement === 'inside'),
-      back: disks.filter(d => d.placement === 'back')
-    }
+    front: disks.filter(d => d.placement === 'front'),
+    inside: disks.filter(d => d.placement === 'inside'),
+    back: disks.filter(d => d.placement === 'back')
   };
 }
 

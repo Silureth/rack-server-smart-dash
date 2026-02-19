@@ -87,3 +87,20 @@ CREATE TABLE IF NOT EXISTS rack_item_ports (
 
 CREATE INDEX IF NOT EXISTS idx_ports_item
 ON rack_item_ports(rack_item_id);
+
+CREATE TABLE IF NOT EXISTS rack_item_sockets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rack_item_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  type TEXT, -- C13, C19, etc
+  position_index INTEGER DEFAULT 0,
+  is_deleted INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (rack_item_id)
+    REFERENCES rack_items(id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sockets_item
+ON rack_item_sockets(rack_item_id);

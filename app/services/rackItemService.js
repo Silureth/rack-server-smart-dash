@@ -9,6 +9,15 @@ function getByRack(rackId) {
   `).all(rackId);
 }
 
+function getById(id) {
+  return db.prepare(`
+    SELECT * FROM rack_items
+    WHERE id = ?
+      AND is_deleted = 0
+  `).get(id);
+}
+
+
 function create(data) {
 
   const id = uuidv4();
@@ -178,6 +187,7 @@ function softDelete(id) {
 
 module.exports = {
   getByRack,
+  getById,
   create,
   update,
   move,

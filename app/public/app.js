@@ -457,16 +457,30 @@ function renderItemPanel(data) {
                 <button type="submit">Add Disk</button>
                 </form>
             </div>
-                ${data.rackItem.type !== 'server' ? `
+            <div class="item-components">
+            ${data.ports ? `
                 <div class="server-section ports">
                     <div class="section-title">
                         Ports
                         <span class="section-badge">
-                            ${data.ports ? data.ports.length : 0}
+                            ${data.ports.length}
                         </span>
                     </div>
                     <div class="section-content">
-                        ${renderPorts(data.ports || [])}
+                        ${renderPorts(data.ports)}
+                    </div>
+                </div>
+            ` : ''}
+           ${data.sockets ? `
+                <div class="server-section sockets">
+                    <div class="section-title">
+                        Sockets
+                        <span class="section-badge">
+                            ${data.sockets.length}
+                        </span>
+                    </div>
+                    <div class="section-content">
+                        ${renderSockets(data.sockets)}
                     </div>
                 </div>
             ` : ''}
@@ -503,8 +517,8 @@ function renderItemPanel(data) {
                         ${renderGrid(data.disks.back, 2, "back")}
                     </div>
                 </div>
-
-
+            </div>
+            </div>
         </div>        
         
     `;
@@ -626,6 +640,23 @@ function renderPorts(ports) {
         </div>
     `;
 }
+function renderSockets(sockets) {
+
+    if (!sockets.length)
+        return '<div class="empty">No sockets</div>';
+
+    return `
+        <div class="socket-grid">
+            ${sockets.map(s => `
+                <div class="socket-block" data-id="${s.id}">
+                    <div class="socket-name">${s.name}</div>
+                    <div class="socket-type">${s.type || ''}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
 
 
 function renderGrid(disks, columns, placement) {

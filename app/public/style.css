@@ -1054,3 +1054,17 @@ body.edit-mode .edit-only {
   border: 1px solid #44475a;
   font-size: 12px;
 }
+
+.socket-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.socket-block {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #2f3241;
+  border: 1px solid #44475a;
+  font-size: 12px;
+}

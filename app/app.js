@@ -16,6 +16,7 @@ app.use('/racks', require('./routes/racks'));
 app.use('/rack-items', require('./routes/rackItems'));
 app.use('/rack-items', require('./routes/disks'));
 app.use('/ports', require('./routes/ports'));
+app.use('/sockets', require('./routes/sockets'));
 
 
 app.get('/', (req, res) => {
