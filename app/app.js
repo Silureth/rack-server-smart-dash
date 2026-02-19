@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const rackService = require('./services/rackService');
 const serverService = require('./services/serverService');
+const rackItemService = require('./services/rackItemService');
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.get('/', (req, res) => {
   const racks = rackService.getAll();
 
   const rackData = racks.map(rack => {
-    const servers = serverService.getByRack(rack.id);
+    const servers = rackItemService.getByRack(rack.id);
 
     const frontGrid = Array(rack.height_u).fill(null);
     const backGrid = Array(rack.height_u).fill(null);
