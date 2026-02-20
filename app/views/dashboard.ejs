@@ -40,7 +40,7 @@
 
                         <!-- U NUMBERS -->
                         <div class="u-numbers">
-                            <% (rack.uNumbers || []).forEach((num, index)=> { %>                                
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
                                 <div class="u-number" style="top:<%= index * U_HEIGHT %>px; height:<%= U_HEIGHT %>px;">
                                     <%= num %>
                                 </div>
@@ -53,11 +53,11 @@
                             <% rack.frontGrid.forEach(slot=> { %>
 
                                 <% if (slot && slot.isStart) { %>
-                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
-                                        data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
-                                        data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
-                                        data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
-                                        data-position="<%= slot.position_u_start %>"
+                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>"
+                                        data-id="<%= slot.id %>" data-brand="<%= slot.brand %>"
+                                        data-name="<%= slot.name %>" data-sn="<%= slot.sn %>"
+                                        data-type="<%= slot.type %>" data-orientation="<%= slot.orientation %>"
+                                        data-height="<%= slot.height_u %>" data-position="<%= slot.position_u_start %>"
                                         style="top: <%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>px;height: <%= slot.height_u * U_HEIGHT %>px;"
                                         data-original-top="<%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>">
 
@@ -107,7 +107,7 @@
 
                         <!-- U NUMBERS -->
                         <div class="u-numbers">
-                            <% (rack.uNumbers || []).forEach((num, index)=> { %>                                
+                            <% (rack.uNumbers || []).forEach((num, index)=> { %>
                                 <div class="u-number" style="top:<%= index * U_HEIGHT %>px; height:<%= U_HEIGHT %>px;">
                                     <%= num %>
                                 </div>
@@ -120,11 +120,11 @@
                             <% rack.backGrid.forEach(slot=> { %>
 
                                 <% if (slot && slot.isStart) { %>
-                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>" data-id="<%= slot.id %>"
-                                        data-brand="<%= slot.brand %>" data-name="<%= slot.name %>"
-                                        data-sn="<%= slot.sn %>" data-type="<%= slot.type %>"
-                                        data-orientation="<%= slot.orientation %>" data-height="<%= slot.height_u %>"
-                                        data-position="<%= slot.position_u_start %>"
+                                    <div class="rack-item rack-item-<%= slot.type %> draggable server-u-<%= slot.height_u %>"
+                                        data-id="<%= slot.id %>" data-brand="<%= slot.brand %>"
+                                        data-name="<%= slot.name %>" data-sn="<%= slot.sn %>"
+                                        data-type="<%= slot.type %>" data-orientation="<%= slot.orientation %>"
+                                        data-height="<%= slot.height_u %>" data-position="<%= slot.position_u_start %>"
                                         style="top: <%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>px;height: <%= slot.height_u * U_HEIGHT %>px;"
                                         data-original-top="<%= (rack.height_u - slot.position_u_start - slot.height_u + 1) * U_HEIGHT %>">
 
