@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const rackService = require('./services/rackService');
 const rackItemService = require('./services/rackItemService');
-
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -17,6 +16,8 @@ app.use('/rack-items', require('./routes/rackItems'));
 app.use('/rack-items', require('./routes/disks'));
 app.use('/ports', require('./routes/ports'));
 app.use('/sockets', require('./routes/sockets'));
+app.use('/power-connections', require('./routes/powerConnections'));
+app.use('/network-connections', require('./routes/networkConnections'));
 
 
 app.get('/', (req, res) => {
@@ -70,5 +71,5 @@ app.get('/', (req, res) => {
 
 
 app.listen(3000, () => {
-    console.log('Running on http://localhost:3000');
+  console.log('Running on http://localhost:3000');
 });

@@ -124,3 +124,47 @@ CREATE TABLE IF NOT EXISTS rack_item_power_outlets (
 
 CREATE INDEX IF NOT EXISTS idx_power_outlets_item
 ON rack_item_power_outlets(rack_item_id);
+
+-- ================= POWER CONNECTIONS =================
+CREATE TABLE IF NOT EXISTS power_connections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  outlet_id INTEGER NOT NULL,
+  input_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE(input_id),     -- one PSU connects to one outlet
+  UNIQUE(outlet_id),    -- one outlet feeds one device
+
+  FOREIGN KEY (outlet_id)
+    REFERENCES rack_item_power_outlets(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (input_id)
+    REFERENCES rack_item_power_inputs(id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_power_conn_input
+ON power_connections(input_id);
+
+CREATE INDEX IF NOT EXISTS idx_power_conn_outlet
+ON power_connections(outlet_id);
+
+-- ================= NETWORK CONNECTIONS =================
+CREATE TABLE IF NOT EXISTS network_connections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  port_a_id INTEGER NOT NULL,
+  port_b_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE(port_a_id),
+  UNIQUE(port_b_id),
+
+  FOREIGN KEY (port_a_id)
+    REFERENCES rack_item_ports(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (port_b_id)
+    REFERENCES rack_item_ports(id)
+    ON DELETE CASCADE
+);

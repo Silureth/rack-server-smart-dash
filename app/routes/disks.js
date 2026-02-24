@@ -5,6 +5,9 @@ const portService = require('../services/portService');
 const rackItemService = require('../services/rackItemService');
 const powerInputService = require('../services/powerInputService');
 const powerOutletService = require('../services/powerOutletService');
+const powerConnectionService = require('../services/powerConnectionService');
+const networkConnectionService = require('../services/networkConnectionService');
+
 
 
 
@@ -46,13 +49,30 @@ router.get('/:rackItemId/disks', (req, res) => {
   const powerInputs = powerInputService.getByRackItem(req.params.rackItemId);
   const powerOutlets = powerOutletService.getByRackItem(req.params.rackItemId);
 
+  const allConnections = powerConnectionService.getAll();
+  const usedOutletIds = allConnections.map(c => c.outlet_id);
+  const freeOutlets = powerConnectionService.getFreeOutlets(usedOutletIds);
+
+  const networkConnections = networkConnectionService.getAll();
+  const usedPortIds = networkConnections.flatMap(c => [
+    c.port_a_id,
+    c.port_b_id
+  ]);
+  const freePorts = networkConnectionService.getFreePorts(usedPortIds);
+
   res.json({
     rackItem,
     disks,
     ports,
     powerInputs,
-    powerOutlets
+    powerOutlets,
+    powerConnections: allConnections,
+    freeOutlets,
+    networkConnections,
+    freePorts
   });
 });
+
+
 
 module.exports = router;

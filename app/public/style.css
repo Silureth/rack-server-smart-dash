@@ -26,35 +26,38 @@ button {
 }
 
 /* Hover */
-.top-bar button:hover,
+/* .top-bar button:hover,
 .form-actions button:hover,
 .disk-form button:hover,
 .port-form button:hover,
 .power-input-form button:hover,
-.power-output-form button:hover {
+.power-output-form button:hover { */
+button:hover {
   background: #3a3d52;
   border-color: var(--accent-purple);
   box-shadow: 0 0 8px rgba(189, 147, 249, 0.3);
 }
 
 /* Active (click) */
-.top-bar button:active,
+/* .top-bar button:active,
 .form-actions button:active,
 .disk-form button:active,
 .port-form button:active,
 .power-input-form button:active,
-.power-output-form button:active {
+.power-output-form button:active { */
+button:active {
   transform: translateY(1px);
   box-shadow: none;
 }
 
 /* Focus */
-.top-bar button:focus,
+/* .top-bar button:focus,
 .form-actions button:focus,
 .disk-form button:focus,
 .port-form button:focus,
 .power-input-form button:focus,
-.power-output-form button:focus {
+.power-output-form button:focus { */
+button:focus {
   outline: none;
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.35);
@@ -115,17 +118,18 @@ h3 {
   font-size: 13px;
 }
 
-.top-bar input[type="text"],
-.form-actions button,
+/* .form-actions button,
 .disk-form button,
 .port-form button,
 .power-input-form button,
 .power-output-form button,
-.top-bar button {
+.top-bar button  */
+.top-bar input[type="text"],
+button {
   height: 28px;
   padding: 4px 10px;
   font-size: 13px;
-
+  cursor: pointer;
   background: var(--bg-surface);
   color: var(--text-main);
   border: 1px solid var(--rack-border);
@@ -677,7 +681,9 @@ body.edit-mode .edit-only {
 
 /* Disk content */
 
-.disk-header {
+.disk-header,
+.port-header,
+.power-header {
   font-weight: 600;
   font-size: 13px;
   color: var(--accent-purple);
@@ -906,7 +912,7 @@ body.edit-mode .edit-only {
   font-weight: bold;
 }
 
-.disk-form input,
+/* .disk-form input,
 .disk-form select,
 .server-form input,
 .server-form select,
@@ -915,7 +921,9 @@ body.edit-mode .edit-only {
 .power-input-form input,
 .power-input-form select,
 .power-output-form input,
-.power-output-form select {
+.power-output-form select { */
+input,
+select {
   padding: 6px;
   font-size: 13px;
   background: #2b2e3a;
@@ -923,7 +931,7 @@ body.edit-mode .edit-only {
   border: 1px solid #44475a;
 }
 
-.disk-form input:focus,
+/* .disk-form input:focus,
 .disk-form select:focus,
 .server-form input:focus,
 .server-form select:focus,
@@ -932,7 +940,9 @@ body.edit-mode .edit-only {
 .power-input-form input:focus,
 .power-input-form select:focus,
 .power-output-form input:focus,
-.power-output-form select:focus {
+.power-output-form select:focus { */
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.3);

@@ -535,7 +535,7 @@ function renderItemPanel(data) {
                         </span>
                     </div>
                     <div class="section-content">
-                        ${renderPorts(data.ports)}
+                        ${renderPorts(data.ports, data.networkConnections, data.freePorts)}
                     </div>
                 </div>
             ` : ''}
@@ -548,7 +548,7 @@ function renderItemPanel(data) {
                         </span>
                     </div>
                     <div class="section-content">
-                        ${renderPowerInputs(data.powerInputs)}
+                        ${renderPowerInputs(data.powerInputs, data.powerConnections, data.freeOutlets)}
                     </div>
                 </div>
             ` : ''}
@@ -726,40 +726,121 @@ function getHealthColor(health) {
     return "#e74c3c";
 }
 
-function renderPorts(ports) {
+function renderPorts(ports, connections, freePorts) {
 
     if (!ports || !ports.length)
         return '<div class="empty">No ports</div>';
 
     return `
         <div class="port-grid">
-            ${ports.map(p => `
-                <div class="port-block" data-id="${p.id}">
-                    <div class="port-name">${p.name}</div>
-                    <div class="port-role">${p.role}</div>
-                    <button class="port-delete-btn" data-id="${p.id}">✖</button>
-                </div>
-            `).join('')}
+            ${ports.map(p => {
+
+        // Check if this port is connected
+        const connection = connections.find(c =>
+            c.port_a_id === p.id || c.port_b_id === p.id
+        );
+
+        const connected = !!connection;
+
+        return `
+                    <div class="port-block ${connected ? 'connected' : 'disconnected'}"
+                         data-id="${p.id}">
+
+                        <div class="port-header">
+                            <div>
+                                <div class="port-name">${p.name}</div>
+                                <div class="port-role">${p.role}</div>
+                            </div>
+
+                            <button class="port-delete-btn" data-id="${p.id}"> ✖ </button>
+                        </div>
+
+            ${connected
+                ? `
+                    <div class="port-status connected">
+                        🟢 Connected
+                        <button class="disconnect-network-btn"
+                                data-port-id="${p.id}">
+                            Disconnect
+                        </button>
+                    </div>
+                    `
+                : `
+                    <div class="port-status disconnected">
+                        🔴 Not connected
+                    </div>
+
+                    <select class="connect-network-select">
+                        <option value="">Connect to...</option>
+                ${freePorts
+                    .filter(fp => fp.id !== p.id)
+                    .map(fp => `
+                            <option value="${fp.id}">
+                                ${fp.name} (${fp.role})
+                            </option>`).join('')
+                }
+                                </select>
+                            `
+            }
+
+                    </div>
+                `;
+    }).join('')}
         </div>
     `;
 }
-function renderPowerInputs(inputs) {
+
+function renderPowerInputs(inputs, connections, freeOutlets) {
 
     if (!inputs || !inputs.length)
         return '<div class="empty">No power inputs</div>';
 
     return `
         <div class="power-grid">
-            ${inputs.map(i => `
-                <div class="power-block" data-id="${i.id}">
-                    <div class="power-name">${i.name}</div>
-                    <div class="power-type">${i.type || ''}</div>
-                    <button class="power-delete-btn" data-id="${i.id}">✖</button>
-                </div>
-            `).join('')}
+            ${inputs.map(i => {
+
+        const connection = connections.find(c => c.input_id === i.id);
+        const connected = !!connection;
+
+        return `
+                <div class="power-block ${connected ? 'connected' : 'disconnected'}"
+                    data-id="${i.id}">
+                    <div class="power-header">
+                        <div class="power-name">${i.name}</div>
+                        <div class="power-type">${i.type || ''}</div>
+                        <button class="power-delete-btn" data-id="${i.id}">✖</button>
+                    </div>
+            ${connected
+                ? `
+                        <div class="power-status connected">
+                            🟢 Connected
+                            <button class="disconnect-power-btn"
+                                    data-input-id="${i.id}">
+                                Disconnect
+                            </button>
+                        </div>
+                    `
+                : `
+                        <div class="power-status disconnected">🔴 Not connected</div>
+                        <select class="connect-outlet-select">
+                            <option value="">Select outlet...</option>
+                            ${freeOutlets.map(o => `
+                                <option value="${o.id}">
+                                    ${o.name} (${o.type || ''})
+                                </option>
+                            `).join('')}
+                        </select>
+                    `
+            }
+                    
+                    </div>
+                `;
+    }).join('')}
         </div>
     `;
 }
+
+
 function renderPowerOutlets(outlets) {
 
     if (!outlets || !outlets.length)
@@ -777,7 +858,6 @@ function renderPowerOutlets(outlets) {
         </div>
     `;
 }
-
 
 
 function renderGrid(disks, columns, placement) {
@@ -971,6 +1051,56 @@ itemPanel.addEventListener("click", function (e) {
         return;
     }
 
+    // DELETE PORT
+    if (e.target.classList.contains("port-delete-btn")) {
+        const portId = e.target.dataset.id;
+        if (!confirm("Delete this port?")) return;
+
+        fetch(`/ports/${portId}`, { method: "DELETE" })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+    //Disconnect PORT
+    if (e.target.classList.contains("disconnect-network-btn")) {
+        const portId = e.target.dataset.portId;
+        if (!confirm("Delete this port?")) return;
+
+        fetch('/network-connections/disconnect', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ portId })
+        })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+
+    // DELETE SOCKET
+    if (e.target.classList.contains("power-delete-btn")) {
+        const socketId = e.target.dataset.id;
+        if (!confirm("Delete this port?")) return;
+
+        fetch(`/sockets/${socketId}`, { method: "DELETE" })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+    //Disconnect SOCKET
+    if (e.target.classList.contains("disconnect-power-btn")) {
+        const inputId = e.target.dataset.inputId;
+        if (!confirm("Delete this port?")) return;
+
+        fetch('/power-connections/disconnect', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inputId })
+        })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+
     // SAVE DISK
     if (e.target.classList.contains("disk-save-btn")) {
         const diskBlock = e.target.closest(".disk-block");
@@ -1004,6 +1134,51 @@ itemPanel.addEventListener("click", function (e) {
 
 });
 
+itemPanel.addEventListener("change", function (e) {
+    /*-NETWORK-*/
+    if (e.target.classList.contains("connect-network-select")) {
+        const select = e.target.closest(".connect-network-select");
+        if (!select) return;
+
+        const portB = select.value;
+        if (!portB) return;
+
+        const portA = select.closest(".port-block").dataset.id;
+
+        fetch('/network-connections/connect', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ portA, portB })
+        })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+    /*-POWER-*/
+    if (e.target.classList.contains("connect-outlet-select")) {
+        const select = e.target.closest(".connect-outlet-select");
+        if (!select) return;
+
+        const outletId = select.value;
+        if (!outletId) return;
+
+        const inputBlock = select.closest(".power-block");
+        const inputId = inputBlock.dataset.id;
+
+        fetch('/power-connections/connect', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inputId, outletId })
+        })
+            .then(res => res.json())
+            .then(() => refreshPanel());
+        return;
+    }
+
+})
+
+
+
 itemPanel.addEventListener("submit", function (e) {
 
     const form = e.target;
@@ -1012,12 +1187,10 @@ itemPanel.addEventListener("submit", function (e) {
         handleDiskSubmit(e, form);
         return;
     }
-
     if (form.classList.contains("add-port-form")) {
         handlePortSubmit(e, form);
         return;
     }
-
 
     if (form.classList.contains("add-power-input-form")) {
         handlePowerInputSubmit(e, form);

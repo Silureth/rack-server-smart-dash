@@ -26,4 +26,9 @@ router.post('/:rackItemId/reorder', (req, res) => {
   res.json({ success: true });
 });
 
+router.post('/:socketId/delete', (req, res) => {
+  socketService.softDelete(req.body.socketId);
+  res.json({ success: true });
+});
+
 module.exports = router;
