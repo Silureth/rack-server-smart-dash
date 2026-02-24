@@ -26,9 +26,4 @@ router.post('/:rackItemId/reorder', (req, res) => {
   res.json({ success: true });
 });
 
-// router.post('/:portId/delete', (req, res) => {
-//   portService.softDelete(req.body.portId);
-//   res.json({ success: true });
-// });
-
 module.exports = router;

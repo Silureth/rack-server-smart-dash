@@ -26,6 +26,7 @@ function getFreePorts(param) {
   SELECT *
   FROM rack_item_ports
   WHERE id NOT IN (${param.length ? param.join(',') : 0})
+  AND is_deleted = 0
   `).all();
 }
 

@@ -828,8 +828,8 @@ body.edit-mode .edit-only {
 }
 
 .server-actions button {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
 
   border-radius: 6px;
   border: none;
@@ -1087,6 +1087,13 @@ select:focus {
   background: #2f3241;
   border: 1px solid #44475a;
   font-size: 12px;
+}
+
+.port-block>div,
+.port-block>select,
+.power-block>div,
+.power-block>select {
+  margin: 4px;
 }
 
 .power-grid {

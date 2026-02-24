@@ -35,6 +35,7 @@ function getFreeOutlets(param) {
   SELECT *
   FROM rack_item_power_outlets
   WHERE id NOT IN (${param.length ? param.join(',') : 0})
+  AND is_deleted = 0
   `).all();
 }
 
