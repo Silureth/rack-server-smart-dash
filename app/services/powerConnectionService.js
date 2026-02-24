@@ -24,9 +24,31 @@ function getByRackItem(rackItemId) {
   `).all(rackItemId);
 }
 
+// function getAll() {
+//   return db.prepare(`
+//     SELECT * FROM power_connections
+//   `).all();
+// }
 function getAll() {
   return db.prepare(`
-    SELECT * FROM power_connections
+    SELECT
+      pc.id,
+      pc.input_id,
+      pc.outlet_id,
+
+      pi.name  AS input_name,
+      ri.name  AS input_rack_name,
+
+      po.name  AS outlet_name,
+      ro.name  AS outlet_rack_name
+
+    FROM power_connections pc
+
+    JOIN rack_item_power_inputs pi ON pi.id = pc.input_id
+    JOIN rack_items ri ON ri.id = pi.rack_item_id
+
+    JOIN rack_item_power_outlets po ON po.id = pc.outlet_id
+    JOIN rack_items ro ON ro.id = po.rack_item_id
   `).all();
 }
 

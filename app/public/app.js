@@ -741,7 +741,19 @@ function renderPorts(ports, connections, freePorts) {
         );
 
         const connected = !!connection;
+        let connectedInfo = '';
+        if (connected) {
+            const isA = connection.port_a_id === p.id;
 
+            const remotePortName = isA ? connection.port_b_name : connection.port_a_name;
+            const remoteRackName = isA ? connection.rack_b_name : connection.rack_a_name;
+
+            connectedInfo = `
+                        <div class="connected-target">
+                            ${remoteRackName} — ${remotePortName}
+                        </div>
+                    `;
+        }
         return `
                     <div class="port-block ${connected ? 'connected' : 'disconnected'}"
                          data-id="${p.id}">
@@ -759,6 +771,7 @@ function renderPorts(ports, connections, freePorts) {
                 ? `
                     <div class="port-status connected">
                         🟢 Connected
+                        ${connectedInfo}
                         <button class="disconnect-network-btn"
                                 data-port-id="${p.id}">
                             Disconnect
@@ -801,6 +814,15 @@ function renderPowerInputs(inputs, connections, freeOutlets) {
 
         const connection = connections.find(c => c.input_id === i.id);
         const connected = !!connection;
+        let connectedInfo = '';
+
+        if (connected) {
+            connectedInfo = `
+                        <div class="connected-target">
+                            ${connection.outlet_rack_name} — ${connection.outlet_name}
+                        </div>
+                    `;
+        }
 
         return `
                 <div class="power-block ${connected ? 'connected' : 'disconnected'}"
@@ -814,6 +836,7 @@ function renderPowerInputs(inputs, connections, freeOutlets) {
                 ? `
                         <div class="power-status connected">
                             🟢 Connected
+                            ${connectedInfo}
                             <button class="disconnect-power-btn"
                                     data-input-id="${i.id}">
                                 Disconnect
