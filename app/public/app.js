@@ -42,7 +42,7 @@ function enableRackItemDrag() {
             const startX = e.clientX;
             const startY = e.clientY;
 
-            const originalRack = el.parentElement;
+            let originalRack = el.parentElement;
             const originalTop = parseInt(el.dataset.originalTop);
             const heightU = parseInt(el.dataset.height);
             const rackItemId = el.dataset.id;
@@ -96,17 +96,26 @@ function enableRackItemDrag() {
                 return { snappedTop, uStart, uEnd };
             }
 
-            // 🔥 Collision check (dual side for servers)
-            function checkCollision(uStart, uEnd) {
+            function checkCollision(uStart, uEnd, targetRack) {
 
-                const racksToCheck = type === "server"
-                    ? [
-                        document.querySelector('.rack[data-orientation="front"]'),
-                        document.querySelector('.rack[data-orientation="back"]')
-                    ]
-                    : [currentRack];
+                let racksToCheck;
+
+                if (type === "server") {
+
+                    // Find the front/back pair container
+                    const rackWrapper = targetRack.closest(".rack-wrapper");
+
+                    const frontRack = rackWrapper.querySelector('.rack[data-orientation="front"]');
+                    const backRack = rackWrapper.querySelector('.rack[data-orientation="back"]');
+
+                    racksToCheck = [frontRack, backRack];
+
+                } else {
+                    racksToCheck = [targetRack];
+                }
 
                 for (const rack of racksToCheck) {
+
                     if (!rack) continue;
 
                     const rackHeightU = rack.clientHeight / U_HEIGHT;
@@ -116,6 +125,7 @@ function enableRackItemDrag() {
                     ).filter(s => s.dataset.id !== rackItemId);
 
                     for (const s of others) {
+
                         const otherTop = parseInt(s.style.top);
                         const otherHeight = parseInt(s.dataset.height);
 
@@ -129,8 +139,11 @@ function enableRackItemDrag() {
                         }
                     }
                 }
+
                 return false;
             }
+
+
 
             function onMouseMove(e) {
 
@@ -148,7 +161,8 @@ function enableRackItemDrag() {
                 const { snappedTop, uStart, uEnd } =
                     calculatePosition(targetRack, e.clientY);
 
-                const collision = checkCollision(uStart, uEnd);
+                const collision = checkCollision(uStart, uEnd, targetRack);
+
 
                 if (type === "server") {
 
@@ -158,10 +172,9 @@ function enableRackItemDrag() {
 
                 } else {
 
-                    // 🔥 THIS WAS MISSING
                     if (el.parentElement !== targetRack) {
                         targetRack.appendChild(el);
-                        currentRack = targetRack;   // <<< CRITICAL FIX
+                        currentRack = targetRack;
                     }
 
                     el.style.top = snappedTop + "px";
@@ -186,7 +199,7 @@ function enableRackItemDrag() {
                 const { snappedTop, uStart, uEnd } =
                     calculatePosition(currentRack, e.clientY);
 
-                const collision = checkCollision(uStart, uEnd);
+                const collision = checkCollision(uStart, uEnd, currentRack);
 
                 if (collision) {
                     restoreOriginal();
