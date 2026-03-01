@@ -43,7 +43,7 @@ function enableRackItemDrag() {
             const startY = e.clientY;
 
             let originalRack = el.parentElement;
-            const originalTop = parseInt(el.dataset.originalTop);
+            const originalTop = parseInt(el.dataset.originalTop) || 0;
             const heightU = parseInt(el.dataset.height);
             const rackItemId = el.dataset.id;
             const type = el.dataset.type;
@@ -56,21 +56,21 @@ function enableRackItemDrag() {
                 ? Array.from(document.querySelectorAll(`.draggable[data-id="${rackItemId}"]`))
                 : [el];
 
-            function restoreOriginal() {
+            pairedElements.forEach(p => {
+                p.dataset.originalTop = p.style.top || "0";
+                p.dataset.originalParent = p.parentElement.dataset.orientation;
+            });
 
-                if (type === "server") {
-                    pairedElements.forEach(p => {
-                        const rackColumn = document.querySelector(
-                            `.rack[data-orientation="${p.dataset.orientation}"]`
-                        );
-                        if (rackColumn) rackColumn.appendChild(p);
-                        p.style.top = originalTop + "px";
-                    });
-                } else {
-                    originalRack.appendChild(el);
-                    el.style.top = originalTop + "px";
-                }
+
+            function restoreOriginal() {
+                pairedElements.forEach(p => {
+                    const orientation = p.dataset.originalParent;
+                    const rackColumn = document.querySelector(`.rack[data-orientation="${orientation}"]`);
+                    if (rackColumn) rackColumn.appendChild(p);
+                    p.style.top = p.dataset.originalTop;
+                });
             }
+
 
 
             function getRackUnderMouse(x, y) {
@@ -243,7 +243,12 @@ function enableRackItemDrag() {
 
     });
 }
-
+/* ===================== INIT ORIGINAL TOP ===================== */
+document.querySelectorAll('.rack-item[data-type="server"]').forEach(el => {
+    if (!el.dataset.originalTop) {
+        el.dataset.originalTop = el.offsetTop;
+    }
+});
 enableRackItemDrag();
 
 
