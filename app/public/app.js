@@ -3,7 +3,9 @@ const U_HEIGHT = 24;
 const editToggle = document.getElementById("editToggle");
 const backdrop = document.getElementById("panelBackdrop");
 
+
 function isEditEnabled() {
+    const editToggle = document.getElementById("editToggle");
     return editToggle && editToggle.checked;
 }
 
@@ -28,51 +30,56 @@ function enableRackItemDrag() {
         el.addEventListener("mousedown", (e) => {
             if (!isEditEnabled()) return;
 
-            if (e.target.closest(".item-config-btn")) return;
+            if (
+                e.target.closest(".item-config-btn") ||
+                e.target.closest(".item-edit-btn") ||
+                e.target.closest(".delete-form") ||
+                e.target.closest(".resize-handle")
+            ) return;
 
-            if (e.target.closest(".item-edit-btn")) return;
-
-            if (e.target.closest(".delete-form")) return;
-
-            if (e.target.closest(".resize-handle")) return;
+            e.preventDefault();
 
             const startX = e.clientX;
             const startY = e.clientY;
 
-
-
-            e.preventDefault();
-
-
-            let hasMoved = false;
             const originalRack = el.parentElement;
             const originalTop = parseInt(el.dataset.originalTop);
-
             const heightU = parseInt(el.dataset.height);
             const rackItemId = el.dataset.id;
+            const type = el.dataset.type;
 
             let currentRack = originalRack;
+            let hasMoved = false;
+
+            // 🔥 If server → get both front & back elements
+            const pairedElements = type === "server"
+                ? Array.from(document.querySelectorAll(`.draggable[data-id="${rackItemId}"]`))
+                : [el];
 
             function restoreOriginal() {
-                originalRack.appendChild(el);
-                el.style.top = originalTop + "px";
+
+                if (type === "server") {
+                    pairedElements.forEach(p => {
+                        const rackColumn = document.querySelector(
+                            `.rack[data-orientation="${p.dataset.orientation}"]`
+                        );
+                        if (rackColumn) rackColumn.appendChild(p);
+                        p.style.top = originalTop + "px";
+                    });
+                } else {
+                    originalRack.appendChild(el);
+                    el.style.top = originalTop + "px";
+                }
             }
 
-            function getRackUnderMouse(x, y) {
-                const racks = document.querySelectorAll(".rack");
 
-                for (const rack of racks) {
-                    const rect = rack.getBoundingClientRect();
-                    if (
-                        x >= rect.left &&
-                        x <= rect.right &&
-                        y >= rect.top &&
-                        y <= rect.bottom
-                    ) {
-                        return rack;
-                    }
-                }
-                return null;
+            function getRackUnderMouse(x, y) {
+                return Array.from(document.querySelectorAll(".rack"))
+                    .find(rack => {
+                        const rect = rack.getBoundingClientRect();
+                        return x >= rect.left && x <= rect.right &&
+                            y >= rect.top && y <= rect.bottom;
+                    }) || null;
             }
 
             function calculatePosition(rack, clientY) {
@@ -80,41 +87,46 @@ function enableRackItemDrag() {
                 const rackHeightU = rack.clientHeight / U_HEIGHT;
 
                 let relativeY = clientY - rect.top;
+                relativeY = Math.max(0, Math.min(relativeY, rack.clientHeight - el.clientHeight));
 
-                if (relativeY < 0) relativeY = 0;
-                if (relativeY > rack.clientHeight - el.clientHeight)
-                    relativeY = rack.clientHeight - el.clientHeight;
-
-                const snappedTop =
-                    Math.round(relativeY / U_HEIGHT) * U_HEIGHT;
-
-                const uStart =
-                    rackHeightU - (snappedTop / U_HEIGHT) - heightU + 1;
-
+                const snappedTop = Math.round(relativeY / U_HEIGHT) * U_HEIGHT;
+                const uStart = rackHeightU - (snappedTop / U_HEIGHT) - heightU + 1;
                 const uEnd = uStart + heightU - 1;
 
                 return { snappedTop, uStart, uEnd };
             }
 
-            function checkCollision(rack, uStart, uEnd) {
-                const rackHeightU = rack.clientHeight / U_HEIGHT;
+            // 🔥 Collision check (dual side for servers)
+            function checkCollision(uStart, uEnd) {
 
-                const others = Array.from(
-                    rack.querySelectorAll(".draggable")
-                ).filter(s => s !== el);
+                const racksToCheck = type === "server"
+                    ? [
+                        document.querySelector('.rack[data-orientation="front"]'),
+                        document.querySelector('.rack[data-orientation="back"]')
+                    ]
+                    : [currentRack];
 
-                for (const s of others) {
+                for (const rack of racksToCheck) {
+                    if (!rack) continue;
 
-                    const otherTop = parseInt(s.style.top);
-                    const otherHeight = parseInt(s.dataset.height);
+                    const rackHeightU = rack.clientHeight / U_HEIGHT;
 
-                    const otherUStart =
-                        rackHeightU - (otherTop / U_HEIGHT) - otherHeight + 1;
+                    const others = Array.from(
+                        rack.querySelectorAll(".draggable")
+                    ).filter(s => s.dataset.id !== rackItemId);
 
-                    const otherUEnd = otherUStart + otherHeight - 1;
+                    for (const s of others) {
+                        const otherTop = parseInt(s.style.top);
+                        const otherHeight = parseInt(s.dataset.height);
 
-                    if (uStart <= otherUEnd && uEnd >= otherUStart) {
-                        return true;
+                        const otherUStart =
+                            rackHeightU - (otherTop / U_HEIGHT) - otherHeight + 1;
+
+                        const otherUEnd = otherUStart + otherHeight - 1;
+
+                        if (uStart <= otherUEnd && uEnd >= otherUStart) {
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -125,7 +137,6 @@ function enableRackItemDrag() {
                 const deltaX = Math.abs(e.clientX - startX);
                 const deltaY = Math.abs(e.clientY - startY);
 
-                // Require small movement before drag activates
                 if (!hasMoved) {
                     if (deltaX < 5 && deltaY < 5) return;
                     hasMoved = true;
@@ -134,22 +145,33 @@ function enableRackItemDrag() {
                 const targetRack = getRackUnderMouse(e.clientX, e.clientY);
                 if (!targetRack) return;
 
-                if (targetRack !== currentRack) {
-                    currentRack = targetRack;
-                    targetRack.appendChild(el);
+                const { snappedTop, uStart, uEnd } =
+                    calculatePosition(targetRack, e.clientY);
+
+                const collision = checkCollision(uStart, uEnd);
+
+                if (type === "server") {
+
+                    pairedElements.forEach(p => {
+                        p.style.top = snappedTop + "px";
+                    });
+
+                } else {
+
+                    // 🔥 THIS WAS MISSING
+                    if (el.parentElement !== targetRack) {
+                        targetRack.appendChild(el);
+                        currentRack = targetRack;   // <<< CRITICAL FIX
+                    }
+
+                    el.style.top = snappedTop + "px";
                 }
 
-                const { snappedTop, uStart, uEnd } =
-                    calculatePosition(currentRack, e.clientY);
-
-                const collision =
-                    checkCollision(currentRack, uStart, uEnd);
-
-                el.style.top = snappedTop + "px";
 
                 el.classList.toggle("invalid", collision);
                 el.classList.toggle("valid", !collision);
             }
+
 
 
             function onMouseUp(e) {
@@ -158,37 +180,54 @@ function enableRackItemDrag() {
                 document.removeEventListener("mouseup", onMouseUp);
 
                 if (!hasMoved) return;
+
                 el.classList.remove("valid", "invalid");
 
                 const { snappedTop, uStart, uEnd } =
                     calculatePosition(currentRack, e.clientY);
 
-                const collision =
-                    checkCollision(currentRack, uStart, uEnd);
+                const collision = checkCollision(uStart, uEnd);
 
                 if (collision) {
                     restoreOriginal();
                     return;
                 }
 
-                const orientation =
-                    currentRack.dataset.orientation;
+                // 🔥 Save both sides if server
+                const orientations = type === "server"
+                    ? ["front", "back"]
+                    : [currentRack.dataset.orientation];
 
-                fetch("/rack-items/move", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id: rackItemId,
-                        position_u_start: uStart,
-                        orientation
-                    })
-                })
-                    .then(res => res.json())
-                    .then(() => {
-                        // update canonical top after successful move
+                Promise.all(
+                    orientations.map(orientation =>
+                        fetch("/rack-items/move", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                id: rackItemId,
+                                position_u_start: uStart,
+                                orientation
+                            })
+                        })
+                    )
+                ).then(() => {
+
+                    // 🔥 Update state AFTER successful move
+
+                    if (type === "server") {
+                        pairedElements.forEach(p => {
+                            p.dataset.originalTop = snappedTop;
+                            p.style.top = snappedTop + "px";
+                        });
+                    } else {
                         el.dataset.originalTop = snappedTop;
                         el.style.top = snappedTop + "px";
-                    });
+                    }
+
+                    // 🔥 Update originalRack reference
+                    originalRack = el.parentElement;
+                });
+
             }
 
             document.addEventListener("mousemove", onMouseMove);
@@ -197,7 +236,9 @@ function enableRackItemDrag() {
 
     });
 }
+
 enableRackItemDrag();
+
 
 
 /* ===================== RESIZE ===================== */

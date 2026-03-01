@@ -30,32 +30,28 @@ app.get('/', (req, res) => {
     const backGrid = Array(rack.height_u).fill(null);
 
     rackItems.forEach(item => {
-      const targetGrid =
-        item.orientation === 'front'
-          ? frontGrid
-          : backGrid;
+      // Decide which grids to occupy
+      const gridsToUse = item.type === 'server'
+        ? [frontGrid, backGrid]                 // servers go on both
+        : item.orientation === 'front'
+          ? [frontGrid]
+          : [backGrid];                         // switches/PDUs go on one side
 
-      // mark first U
-      targetGrid[item.position_u_start - 1] = {
-        ...item,
-        isStart: true
-      };
+      gridsToUse.forEach(grid => {
+        // mark first U
+        grid[item.position_u_start - 1] = { ...item, isStart: true };
 
-      // mark filler U
-      for (let i = 1; i < item.height_u; i++) {
-        targetGrid[item.position_u_start - 1 + i] = {
-          isFiller: true
-        };
-      }
+        // mark filler U
+        for (let i = 1; i < item.height_u; i++) {
+          grid[item.position_u_start - 1 + i] = { isFiller: true };
+        }
+      });
     });
 
     const front = frontGrid.reverse();
     const back = backGrid.reverse();
 
-    const uNumbers = Array.from(
-      { length: rack.height_u },
-      (_, i) => rack.height_u - i
-    );
+    const uNumbers = Array.from({ length: rack.height_u }, (_, i) => rack.height_u - i);
 
     return {
       ...rack,
@@ -67,6 +63,7 @@ app.get('/', (req, res) => {
 
   res.render('dashboard', { racks: rackData });
 });
+
 
 
 

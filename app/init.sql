@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS rack_items (
   brand TEXT,
   sn TEXT,
   orientation TEXT CHECK(orientation IN ('front','back')) NOT NULL,
+  occupies_front INTEGER DEFAULT 0,
+  occupies_rear  INTEGER DEFAULT 0,
   height_u INTEGER NOT NULL CHECK(height_u > 0),
   position_u_start INTEGER NOT NULL CHECK(position_u_start > 0),
   is_deleted INTEGER DEFAULT 0,

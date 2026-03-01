@@ -49,13 +49,26 @@ function create(data) {
   if (!allowedTypes.includes(data.type)) {
     throw new Error("Invalid rack item type");
   }
-
+  if (data.type === 'server') {
+    data.occupies_front = 1;
+    data.occupies_rear = 1;
+    data.orientation = 'front'; // or leave blank
+  } else if (data.type === 'switch' || data.type === 'pdu') {
+    if (data.orientation === 'front') {
+      data.occupies_front = 1;
+      data.occupies_rear = 0;
+    } else {
+      data.occupies_front = 0;
+      data.occupies_rear = 1;
+    }
+  }
   db.prepare(`
     INSERT INTO rack_items (
       id, rack_id, type, name, brand, sn,
-      orientation, height_u, position_u_start
+      orientation, height_u, position_u_start,
+      occupies_front, occupies_rear
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)
   `).run(
     id,
     data.rack_id,
@@ -65,7 +78,9 @@ function create(data) {
     data.sn,
     data.orientation,
     data.height_u || 1,
-    data.position_u_start || 1
+    data.position_u_start || 1,
+    data.occupies_front,
+    data.occupies_rear
   );
 
   return id;
