@@ -63,6 +63,79 @@ function add(rackItemId, data) {
   );
 }
 
+
+function updateDisk(diskId, payload) {
+
+  const disk = db.prepare(`
+    SELECT * FROM disks
+    WHERE id = ? AND is_deleted = 0
+  `).get(diskId);
+
+  if (!disk) throw new Error("Disk not found");
+
+  // Normalize slot_id
+  const slotId =
+    payload.slot_id && payload.slot_id.trim() !== ""
+      ? payload.slot_id.trim()
+      : null;
+
+  // Only check duplicates if slotId exists
+  if (slotId) {
+    const existing = db.prepare(`
+    SELECT id FROM disks
+    WHERE rack_item_id = ?
+    AND slot_id = ?
+    AND id != ?
+    AND is_deleted = 0
+  `).get(disk.rack_item_id, slotId, diskId);
+
+    if (existing) {
+      throw new Error("Duplicate Slot ID");
+    }
+  }
+
+
+  db.prepare(`
+  UPDATE disks
+  SET
+    slot_id = ?,
+    pci_group = ?,
+    brand = ?,
+    name = ?,
+    serial = ?
+  WHERE id = ?
+`).run(
+    slotId,
+    payload.pci_group !== "" ? parseInt(payload.pci_group) : null,
+    payload.brand,
+    payload.name,
+    payload.serial,
+    diskId
+  );
+
+}
+
+
+function reorderDisks(rackItemId, placement, orderedIds) {
+
+  const update = db.prepare(`
+    UPDATE disks
+    SET position_index = ?
+    WHERE id = ?
+    AND rack_item_id = ?
+    AND placement = ?
+  `);
+
+  const transaction = db.transaction((ids) => {
+    ids.forEach((diskId, index) => {
+      update.run(index + 1, diskId, rackItemId, placement);
+    });
+  });
+
+  transaction(orderedIds);
+}
+
+
 function softDelete(diskId) {
   db.prepare(`
     UPDATE disks
@@ -74,5 +147,7 @@ function softDelete(diskId) {
 module.exports = {
   getByRackItem,
   add,
+  updateDisk,
+  reorderDisks,
   softDelete
 };

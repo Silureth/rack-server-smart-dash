@@ -73,6 +73,39 @@ router.get('/:rackItemId/disks', (req, res) => {
   });
 });
 
+router.put("/disks/:id", (req, res) => {
+
+  const diskId = parseInt(req.params.id);
+  const payload = req.body;
+
+  try {
+    diskService.updateDisk(diskId, payload);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Update failed" });
+  }
+
+});
+
+router.post('/:id/disks/reorder', (req, res) => {
+
+  const serverId = req.params.id;
+  const { placement, order } = req.body;
+
+  if (!placement || !Array.isArray(order)) {
+    return res.status(400).json({ error: "Invalid reorder payload" });
+  }
+
+  try {
+    diskService.reorderDisks(serverId, placement, order);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 module.exports = router;
