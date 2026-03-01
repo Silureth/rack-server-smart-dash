@@ -51,7 +51,7 @@ function enableRackItemDrag() {
             let currentRack = originalRack;
             let hasMoved = false;
 
-            // 🔥 If server → get both front & back elements
+            // If server → get both front & back elements
             const pairedElements = type === "server"
                 ? Array.from(document.querySelectorAll(`.draggable[data-id="${rackItemId}"]`))
                 : [el];
@@ -206,7 +206,6 @@ function enableRackItemDrag() {
                     return;
                 }
 
-                // 🔥 Save both sides if server
                 const orientations = type === "server"
                     ? ["front", "back"]
                     : [currentRack.dataset.orientation];
@@ -224,9 +223,6 @@ function enableRackItemDrag() {
                         })
                     )
                 ).then(() => {
-
-                    // 🔥 Update state AFTER successful move
-
                     if (type === "server") {
                         pairedElements.forEach(p => {
                             p.dataset.originalTop = snappedTop;
@@ -236,8 +232,6 @@ function enableRackItemDrag() {
                         el.dataset.originalTop = snappedTop;
                         el.style.top = snappedTop + "px";
                     }
-
-                    // 🔥 Update originalRack reference
                     originalRack = el.parentElement;
                 });
 
